@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>클로드코드와 깃허브로 반복작업을 워크플로우화하고 웹앱으로 확장하기 도구는 바뀌어도, 적어 둔 루틴은 남습니다 — JUST VUILD 2026 사전연수 3회차 · 닷커넥터 김진관</title>
+<meta name="description" content="JUST VUILD 2026 사전연수 3회차 · 클로드코드와 깃허브로 반복작업을 워크플로우화하고 웹앱으로 확장하기">
+<meta name="theme-color" content="#6256A2">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="클로드코드와 깃허브로 반복작업을 워크플로우화하고 웹앱으로 확장하기 도구는 바뀌어도, 적어 둔 루틴은 남습니다 — JUST VUILD 2026 사전연수 3회차 · 닷커넥터 김진관">
+<meta property="og:description" content="JUST VUILD 2026 사전연수 3회차 · 클로드코드와 깃허브로 반복작업을 워크플로우화하고 웹앱으로 확장하기">
+<meta property="og:image" content="assets/slides/s1.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%236256A2'/%3E%3Crect x='13' y='17' width='38' height='24' rx='3' fill='%23fff'/%3E%3Crect x='19' y='46' width='26' height='4' rx='2' fill='%23fff' opacity='.7'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ============================================================
+   강의 자료 공유 페이지 — 발표자는 프로젝터로, 참석자는 QR로.
+   색상 토큰은 강의 덱(assets/css/deck.css)에서 그대로 가져온다.
+   한 파일이 어느 강의에나 쓰이도록, 내용은 전부 lecture.config.json이 정한다.
+   ============================================================ */
+
+:root {
+  --lav:        #C8C1E0;
+  --lav-soft:   #EFEEF6;
+  --key:        #6256A2;
+  --key-deep:   #4A3E8F;
+  --key-ink:    #6256A2;   /* 본문 위 링크색 — 다크모드에서 밝게 재정의 */
+  --magenta:    #E85297;
+  --blue:       #3688C9;
+  --highlight:  #F1ED65;
+
+  --ink:        #231815;
+  --ink-2:      #55504E;
+  --ink-3:      #75706B;
+  --paper:      #FBFAFC;
+  --surface:    #FFFFFF;
+  --surface-2:  #F4F2F8;
+  --rule:       #E3E0EC;
+
+  --shadow-1: 0 2px 8px rgba(35,24,21,.05);
+  --shadow-2: 0 8px 24px rgba(35,24,21,.08);
+  --shadow-3: 0 18px 48px rgba(35,24,21,.16);
+
+  --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+          'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+
+  --gutter: 20px;
+  --maxw: 1140px;
+  --radius: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --lav:       #3B3359;
+    --lav-soft:  #251F38;
+    --key:       #A99BE4;
+    --key-deep:  #C9BEF3;
+    --key-ink:   #B6A9EC;
+    --ink:       #F2EFF6;
+    --ink-2:     #C6C0D2;
+    --ink-3:     #968FA6;
+    --paper:     #14111C;
+    --surface:   #1D1929;
+    --surface-2: #262034;
+    --rule:      #332C46;
+    --shadow-1: 0 2px 8px rgba(0,0,0,.4);
+    --shadow-2: 0 8px 24px rgba(0,0,0,.45);
+    --shadow-3: 0 18px 48px rgba(0,0,0,.6);
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 76px; -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--font);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.75;
+  word-break: keep-all;          /* 한글 음절 고아 줄바꿈 방지 */
+  line-break: strict;
+  /* 마지막 줄에 한 어절만 남는 고아 단어를 막는다. 상속되므로 본문 전체에 걸린다. */
+  text-wrap: pretty;
+  overflow-x: hidden;            /* 가로 스크롤 금지 */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 제목과 짧은 산문은 pretty(마지막 줄만 손봄)보다 balance(줄 길이를 고르게)가 맞다.
+   "긴 첫 줄 + 한 단어"로 끊기는 것도, 마지막 줄만 뭉텅 짧게 남는 것도 함께 사라진다.
+   여기 걸린 것은 전부 네 줄 안쪽이다 — 그보다 길면 브라우저가 balance를 무시하고
+   body의 pretty로 돌아가므로, 긴 글이 늘어나도 손해는 없다. */
+h1, h2, h3, p, li, .cap, .hero-accent, .eyebrow, .chip, .jfoot, .sec-label,
+.dl .t b, .dl .t span { text-wrap: balance; }
+
+/* height:auto가 없으면 HTML의 height 속성이 그대로 먹어 표지가 세로로 늘어난다.
+   aspect-ratio를 쓰는 썸네일은 auto에서 비율대로 높이를 계산하므로 함께 안전하다. */
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--key-ink); }
+
+.wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter); }
+
+:where(a, button, input, summary):focus-visible {
+  outline: 3px solid var(--key);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* 건너뛰기 링크 — 키보드 사용자가 갤러리 85장을 지나치지 않게 */
+.skip {
+  position: absolute; left: -9999px; top: 0; z-index: 200;
+  background: var(--key); color: #fff; padding: 10px 18px; border-radius: 0 0 10px 0;
+  font-weight: 700; text-decoration: none;
+}
+.skip:focus { left: 0; }
+
+/* ============================================================
+   1. 상단 바
+   ============================================================ */
+
+.topbar {
+  position: sticky; top: 0; z-index: 60;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--rule);
+}
+.topbar .wrap {
+  display: flex; align-items: center; gap: 14px;
+  height: 58px;
+}
+.topbar-title {
+  font-weight: 800; font-size: 15px; letter-spacing: -.02em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  flex: 0 1 auto; min-width: 0;
+}
+.topbar-nav { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.topbar-nav a {
+  font-size: 14px; font-weight: 600; color: var(--ink-2); text-decoration: none;
+  padding: 7px 11px; border-radius: 9px; white-space: nowrap;
+}
+.topbar-nav a:hover { background: var(--surface-2); color: var(--ink); }
+@media (max-width: 720px) { .topbar-nav a.opt { display: none; } }
+
+.qr-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--key); color: #fff; border: 0; cursor: pointer;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  padding: 9px 15px; border-radius: 10px; white-space: nowrap;
+}
+.qr-btn:hover { background: var(--key-deep); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .qr-btn { color: #17122A; }
+}
+.qr-btn svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
+
+/* ============================================================
+   2. 히어로 — 라벤더 필드 + QR 카드
+   ============================================================ */
+
+.hero {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 88% 5%, color-mix(in srgb, var(--lav) 70%, transparent), transparent 62%),
+    linear-gradient(168deg, var(--lav) 0%, var(--lav-soft) 62%, var(--paper) 100%);
+  padding: clamp(40px, 7vw, 76px) 0 clamp(36px, 6vw, 64px);
+  border-bottom: 1px solid var(--rule);
+}
+.hero-grid {
+  display: grid; grid-template-columns: minmax(0,1.45fr) minmax(0,.9fr);
+  gap: clamp(28px, 4vw, 52px); align-items: start;
+}
+@media (max-width: 880px) { .hero-grid { grid-template-columns: 1fr; } }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--surface); color: var(--key);
+  border: 1px solid color-mix(in srgb, var(--key) 30%, transparent);
+  font-size: 13px; font-weight: 800; letter-spacing: .01em;
+  padding: 6px 13px; border-radius: 99px; margin-bottom: 18px;
+}
+.eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--magenta); flex: none; }
+
+h1.hero-title {
+  font-size: clamp(30px, 6.4vw, 54px);
+  font-weight: 800; letter-spacing: -.038em; line-height: 1.16; color: var(--ink);
+}
+.hero-accent {
+  display: block; margin-top: 6px;
+  font-size: clamp(20px, 4.2vw, 33px); font-weight: 800;
+  letter-spacing: -.03em; color: var(--key);
+}
+.hero-summary {
+  margin-top: 20px; max-width: 46ch;
+  font-size: clamp(15px, 1.7vw, 17px); color: var(--ink-2);
+}
+
+.hero-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  border: 1px solid var(--rule); color: var(--ink-2);
+  font-size: 13.5px; font-weight: 600; padding: 7px 13px; border-radius: 99px;
+}
+.chip b { color: var(--ink); font-weight: 700; }
+
+.hero-note {
+  margin-top: 26px; padding: 14px 18px;
+  background: color-mix(in srgb, var(--surface) 75%, transparent);
+  border-left: 4px solid var(--magenta); border-radius: 0 10px 10px 0;
+  font-size: 14.5px; color: var(--ink-2);
+}
+
+/* QR 카드 */
+.qr-card {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 20px;
+  box-shadow: var(--shadow-2); padding: 22px; text-align: center;
+  max-width: 340px; width: 100%; justify-self: end;
+}
+@media (max-width: 880px) { .qr-card { justify-self: center; } }
+.qr-card h2 {
+  font-size: 15px; font-weight: 800; color: var(--ink); letter-spacing: -.01em;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.qr-card h2 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--magenta); }
+.qr-card p.qr-hint { font-size: 13.5px; color: var(--ink-3); margin-top: 4px; line-height: 1.55; }
+
+.qr-holder {
+  margin: 16px auto 14px; width: min(212px, 62vw); aspect-ratio: 1;
+  background: #fff; border-radius: 14px; padding: 10px;
+  border: 1px solid var(--rule);
+  display: flex; align-items: center; justify-content: center;
+}
+.qr-holder svg { width: 100%; height: 100%; display: block; }
+.qr-holder.is-empty { color: var(--ink-3); font-size: 13px; padding: 18px; line-height: 1.6; }
+
+.qr-url {
+  font-size: 12.5px; color: var(--ink-3); word-break: break-all; line-height: 1.5;
+  background: var(--surface-2); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px;
+}
+.qr-actions { display: flex; gap: 8px; }
+.qr-actions button {
+  flex: 1; font-family: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer;
+  padding: 10px 8px; border-radius: 10px;
+  border: 1px solid var(--rule); background: var(--surface-2); color: var(--ink-2);
+}
+.qr-actions button:hover { background: var(--lav-soft); color: var(--key); border-color: var(--key); }
+
+.qr-setup { margin-top: 12px; }
+.qr-setup summary {
+  cursor: pointer; font-size: 12.5px; color: var(--ink-3); font-weight: 600;
+  list-style: none; padding: 4px;
+}
+.qr-setup summary::-webkit-details-marker { display: none; }
+.qr-setup summary::before { content: "⚙ "; }
+.qr-setup input {
+  width: 100%; margin-top: 8px; font-family: inherit; font-size: 13px;
+  padding: 9px 11px; border-radius: 9px; border: 1px solid var(--rule);
+  background: var(--surface); color: var(--ink);
+}
+
+/* ============================================================
+   3. 섹션 공통
+   ============================================================ */
+
+section.band { padding: clamp(46px, 7vw, 78px) 0; }
+section.band.alt { background: var(--surface-2); border-block: 1px solid var(--rule); }
+
+.sec-head { margin-bottom: clamp(26px, 3.6vw, 40px); max-width: 60ch; }
+.sec-label {
+  font-size: 13px; font-weight: 800; letter-spacing: .05em; color: var(--magenta);
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.sec-head h2 {
+  font-size: clamp(23px, 3.6vw, 33px); font-weight: 800;
+  letter-spacing: -.032em; line-height: 1.28; color: var(--ink);
+}
+.sec-head p { margin-top: 12px; color: var(--ink-2); font-size: clamp(14.5px, 1.6vw, 16.5px); }
+
+/* ============================================================
+   4. 오늘의 여정
+   ============================================================ */
+
+.journey { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.jcard {
+  position: relative; overflow: hidden;             /* 고스트 넘버 bleed 필수 */
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius);
+  padding: 22px 20px 20px; text-decoration: none; color: inherit;
+  display: flex; flex-direction: column; min-height: 176px;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.jcard:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); border-color: var(--pc, var(--key)); }
+.jcard .ghost {
+  position: absolute; right: -10px; bottom: -26px; z-index: 0;
+  font-size: 104px; font-weight: 800; line-height: 1; letter-spacing: -.06em;
+  color: var(--pc, var(--key)); opacity: .09; pointer-events: none;
+}
+.jcard > * { position: relative; z-index: 1; }
+.jcard .jlabel {
+  font-size: 12.5px; font-weight: 800; letter-spacing: .04em;
+  color: var(--pc, var(--key)); margin-bottom: 9px;
+}
+.jcard h3 { font-size: 17.5px; font-weight: 800; letter-spacing: -.028em; line-height: 1.38; }
+.jcard p { margin-top: 9px; font-size: 14px; color: var(--ink-2); line-height: 1.62; }
+.jcard .jfoot {
+  margin-top: auto; padding-top: 14px; font-size: 13px; font-weight: 700;
+  color: var(--pc, var(--key)); display: flex; align-items: center; gap: 6px;
+}
+
+/* ============================================================
+   5. 슬라이드 갤러리
+   ============================================================ */
+
+.tabs {
+  position: sticky; top: 58px; z-index: 40;
+  display: flex; gap: 7px; overflow-x: auto; padding: 12px 0;
+  margin-bottom: 20px; background: var(--paper);
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+section.band.alt .tabs { background: var(--surface-2); }
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex: none; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  padding: 9px 15px; border-radius: 99px; white-space: nowrap;
+  border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2);
+}
+.tab:hover { border-color: var(--key); color: var(--key); }
+.tab[aria-selected="true"] { background: var(--key); border-color: var(--key); color: #fff; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .tab[aria-selected="true"] { color: #17122A; }
+}
+
+.grid {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+/* 1fr의 최소값은 auto다. keep-all 때문에 안 쪼개지는 긴 어절이 min-content를 밀어올려
+   두 열의 폭이 어긋난다. minmax(0,1fr)로 못을 박아야 정확히 반반이 된다. */
+@media (max-width: 620px) { .grid { gap: 11px; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.thumb {
+  border: 0; padding: 0; background: none; font-family: inherit; cursor: pointer;
+  text-align: left; display: flex; flex-direction: column; gap: 9px;
+}
+.thumb img {
+  width: 100%; aspect-ratio: 16/9; object-fit: cover;
+  border-radius: 11px; border: 1px solid var(--rule);
+  background: var(--surface-2);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.thumb:hover img { transform: translateY(-3px); box-shadow: var(--shadow-2); border-color: var(--key); }
+.thumb figcaption { display: flex; gap: 8px; align-items: flex-start; padding: 0 2px; }
+.thumb .num {
+  flex: none; font-size: 11.5px; font-weight: 800; color: #fff;
+  background: var(--pc, var(--key)); border-radius: 5px;
+  padding: 2px 6px; margin-top: 2px; min-width: 26px; text-align: center;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .thumb .num { color: #17122A; }
+}
+.thumb .cap {
+  font-size: 13px; line-height: 1.5; color: var(--ink-2); font-weight: 600;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+/* 폰에서는 2열이라 칸이 좁다. 두 줄로 자르면 제목 절반이 문장 중간에서 끊긴다.
+   좁을수록 줄을 더 준다 — 카드가 조금 길어지는 대신 제목이 온전히 남는다. */
+@media (max-width: 620px) { .thumb .cap { font-size: 12px; -webkit-line-clamp: 3; } }
+@media (max-width: 400px) { .thumb .cap { -webkit-line-clamp: 4; } }
+
+.gallery-empty { color: var(--ink-3); padding: 30px 0; }
+
+/* ============================================================
+   6. 라이트박스
+   ============================================================ */
+
+.lb {
+  position: fixed; inset: 0; z-index: 100; display: none;
+  background: rgba(14,10,22,.93);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.lb[open], .lb.is-open { display: grid; grid-template-rows: auto 1fr auto; }
+.lb-top { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #fff; }
+.lb-count { font-size: 14px; font-weight: 800; letter-spacing: .02em; }
+.lb-title {
+  font-size: 14px; color: rgba(255,255,255,.72); font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;
+}
+.lb-close {
+  margin-left: auto; flex: none; background: rgba(255,255,255,.13); border: 0; color: #fff;
+  width: 38px; height: 38px; border-radius: 10px; font-size: 20px; cursor: pointer; line-height: 1;
+}
+.lb-close:hover { background: rgba(255,255,255,.26); }
+.lb-stage {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  padding: 0 8px; min-height: 0;
+}
+.lb-stage img {
+  max-width: 100%; max-height: 100%; width: auto; height: auto;
+  object-fit: contain; border-radius: 8px; background: #fff;
+}
+.lb-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 46px; height: 46px; border-radius: 50%; border: 0; cursor: pointer;
+  background: rgba(255,255,255,.14); color: #fff; font-size: 22px; line-height: 1;
+}
+.lb-nav:hover { background: rgba(255,255,255,.3); }
+.lb-nav[disabled] { opacity: .25; cursor: default; }
+.lb-prev { left: 10px; }
+.lb-next { right: 10px; }
+.lb-foot {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+}
+.lb-foot a, .lb-foot button {
+  font-family: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer;
+  text-decoration: none; padding: 9px 16px; border-radius: 10px;
+  background: rgba(255,255,255,.14); color: #fff; border: 0;
+}
+.lb-foot a:hover, .lb-foot button:hover { background: rgba(255,255,255,.28); }
+@media (max-width: 620px) { .lb-nav { width: 40px; height: 40px; } }
+
+/* QR 전체화면 (프로젝터용) */
+.qr-full {
+  position: fixed; inset: 0; z-index: 120; display: none;
+  background: var(--surface); place-items: center; padding: 28px; text-align: center;
+}
+.qr-full.is-open { display: grid; }
+.qr-full .inner { max-width: 660px; }
+.qr-full h2 { font-size: clamp(22px, 4vw, 38px); font-weight: 800; letter-spacing: -.03em; }
+.qr-full p { margin-top: 10px; color: var(--ink-2); font-size: clamp(14px, 2vw, 18px); }
+.qr-full .big {
+  margin: clamp(20px, 3vw, 32px) auto; width: min(58vh, 74vw, 430px); aspect-ratio: 1;
+  background: #fff; padding: 16px; border-radius: 20px; border: 1px solid var(--rule);
+}
+.qr-full .big svg { width: 100%; height: 100%; }
+.qr-full .u { font-size: clamp(13px, 1.8vw, 17px); color: var(--ink-3); word-break: break-all; }
+.qr-full .close {
+  margin-top: 24px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  padding: 11px 24px; border-radius: 11px; border: 1px solid var(--rule);
+  background: var(--surface-2); color: var(--ink-2);
+}
+
+/* ============================================================
+   7. 자료 받기
+   ============================================================ */
+
+.dl-list { display: grid; gap: 10px; }
+.dl {
+  display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 13px;
+  padding: 15px 18px; transition: border-color .16s ease, transform .16s ease;
+}
+.dl:hover { border-color: var(--key); transform: translateX(3px); }
+.dl .ic {
+  flex: none; width: 40px; height: 40px; border-radius: 10px;
+  background: var(--lav-soft); color: var(--key);
+  display: grid; place-items: center; font-size: 12px; font-weight: 800; letter-spacing: -.02em;
+}
+.dl .t { flex: 1; min-width: 0; }
+.dl .t b { display: block; font-size: 15.5px; font-weight: 700; letter-spacing: -.02em; }
+.dl .t span { font-size: 13px; color: var(--ink-3); }
+.dl .sz { flex: none; font-size: 13px; font-weight: 700; color: var(--ink-3); }
+
+/* ============================================================
+   8. 책 소개
+   ============================================================ */
+
+.book {
+  display: grid; grid-template-columns: minmax(0, 250px) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 48px); align-items: start;
+}
+@media (max-width: 760px) { .book { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
+
+.book-cover {
+  border-radius: 6px; box-shadow: var(--shadow-3); width: 100%; max-width: 250px;
+  border: 1px solid var(--rule);
+}
+.book-body h3 {
+  font-size: clamp(20px, 3vw, 27px); font-weight: 800; letter-spacing: -.032em; line-height: 1.35;
+}
+.book-body .by { margin-top: 10px; font-size: 15px; color: var(--ink-2); font-weight: 600; }
+.book-body .bib { margin-top: 6px; font-size: 14px; color: var(--ink-3); }
+.book-body .blurb { margin-top: 18px; font-size: 15.5px; color: var(--ink-2); max-width: 54ch; }
+@media (max-width: 760px) { .book-body .blurb { margin-inline: auto; } }
+
+.book-points { margin-top: 18px; display: grid; gap: 8px; list-style: none; }
+.book-points li {
+  font-size: 14.5px; color: var(--ink-2); padding-left: 25px; position: relative; text-align: left;
+}
+.book-points li::before {
+  content: ""; position: absolute; left: 4px; top: .62em;
+  width: 8px; height: 8px; border-radius: 2px; background: var(--highlight);
+  box-shadow: inset 0 0 0 1px rgba(35,24,21,.12);
+}
+
+.buy { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 9px; }
+@media (max-width: 760px) { .buy { justify-content: center; } }
+.buy a {
+  font-size: 14px; font-weight: 700; text-decoration: none;
+  padding: 11px 19px; border-radius: 11px;
+  background: var(--surface); border: 1px solid var(--rule); color: var(--ink-2);
+}
+.buy a:hover { border-color: var(--key); color: var(--key); }
+.buy a.primary { background: var(--key); border-color: var(--key); color: #fff; }
+.buy a.primary:hover { background: var(--key-deep); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .buy a.primary { color: #17122A; }
+}
+
+/* ============================================================
+   9. 푸터
+   ============================================================ */
+
+footer.foot {
+  background: var(--ink); color: rgba(255,255,255,.72);
+  padding: clamp(36px, 5vw, 56px) 0 clamp(30px, 4vw, 44px); font-size: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) footer.foot { background: #0C0914; }
+}
+footer.foot .frow {
+  display: flex; flex-wrap: wrap; gap: 18px 32px; justify-content: space-between; align-items: flex-start;
+}
+footer.foot b { color: #fff; font-weight: 800; font-size: 15px; display: block; margin-bottom: 6px; }
+footer.foot a { color: rgba(255,255,255,.9); }
+footer.foot .fine {
+  margin-top: 26px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.14);
+  font-size: 12.5px; color: rgba(255,255,255,.5); line-height: 1.7;
+}
+.print-btn {
+  font-family: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer;
+  padding: 10px 18px; border-radius: 10px;
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); color: #fff;
+}
+.print-btn:hover { background: rgba(255,255,255,.22); }
+
+/* ============================================================
+   10. 인쇄 — 메뉴·버튼·애니메이션을 걷어내고 A4로
+   ============================================================ */
+
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html { scroll-padding-top: 0; }
+  body { background: #fff; color: #000; font-size: 10.5pt; line-height: 1.6; }
+  .topbar, .tabs, .qr-actions, .qr-setup, .lb, .qr-full, .print-btn, .skip { display: none !important; }
+  .hero { background: #fff !important; border-bottom: 1px solid #ccc; padding: 0 0 12mm; }
+  section.band { padding: 8mm 0; break-inside: auto; }
+  section.band.alt { background: #fff; border: 0; }
+  .jcard, .dl, .thumb, .book { break-inside: avoid; }
+  .jcard:hover { transform: none; box-shadow: none; }
+  .grid { grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+  .thumb img { border: 1px solid #ddd; }
+  footer.foot { background: #fff; color: #444; border-top: 1px solid #ccc; }
+  footer.foot b, footer.foot a { color: #000; }
+  a { text-decoration: none; }
+  .qr-card { box-shadow: none; page-break-inside: avoid; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .001ms !important; transition-duration: .001ms !important;
+  }
+  .jcard:hover, .thumb:hover img, .dl:hover { transform: none; }
+}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#downloads">자료 받기로 건너뛰기</a>
+
+<header class="topbar">
+  <div class="wrap">
+    <span class="topbar-title">3회차</span>
+    <nav class="topbar-nav" aria-label="바로가기">
+        <a href="#journey">오늘의 여정</a>
+        <a href="#slides">슬라이드</a>
+        <a href="#downloads" class="opt">자료 받기</a>
+        <button class="qr-btn" data-qr-open type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm8-2h3v3h-3v-3zm5 0h3v3h-3v-3zm-5 5h3v3h-3v-3zm5 0h3v3h-3v-3z"/></svg>
+          QR 띄우기
+        </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow"><span class="dot"></span>JUST VUILD 2026 사전연수 3회차 · 닷커넥터 김진관</span>
+      <h1 class="hero-title">클로드코드와 깃허브로 반복작업을 워크플로우화하고 웹앱으로 확장하기<span class="hero-accent">도구는 바뀌어도, 적어 둔 루틴은 남습니다</span></h1>
+      <p class="hero-summary">반복되는 업무를 문제 정의서 한 장에 적고, 한 번 해 본 일을 SKILL.md 한 장으로 남기고, 그 결과를 웹 주소 하나로 동료에게 건넵니다.</p>
+      <div class="hero-meta">
+          <span class="chip">일시 <b>2026년 10월 12일(월) 20:00~21:30</b></span>
+          <span class="chip">방식 <b>온라인 라이브 90분</b></span>
+          <span class="chip">분량 <b>7개 장과 맺음 · 82장</b></span>
+        </div>
+      <p class="hero-note">강의 교안 PDF를 내려받고, 82장 슬라이드를 장별로 살펴볼 수 있습니다.</p>
+    </div>
+
+    <aside class="qr-card">
+      <h2><span class="dot"></span>폰으로 함께 보기</h2>
+      <p class="qr-hint">카메라로 QR을 비추면 이 페이지가 열립니다.</p>
+      <div class="qr-holder" id="qrHolder"></div>
+      <div class="qr-url" id="qrUrl"></div>
+      <div class="qr-actions">
+        <button type="button" id="qrCopy">주소 복사</button>
+        <button type="button" data-qr-open>크게 보기</button>
+      </div>
+      <details class="qr-setup">
+        <summary>배포 주소 직접 넣기</summary>
+        <input type="url" id="qrInput" placeholder="https://example.github.io/lecture/"
+               aria-label="QR에 넣을 배포 주소" inputmode="url" autocomplete="off">
+      </details>
+    </aside>
+  </div>
+</section>
+<section class="band" id="journey">
+  <div class="wrap">
+    <div class="sec-head">
+      
+      <h2>오늘의 여정</h2>
+      
+    </div>
+    <div class="journey">
+    <a class="jcard" href="#slides" data-jump="opening" style="--pc:#6256A2">
+      <span class="ghost" aria-hidden="true">0</span>
+      <span class="jlabel">여는 이야기</span>
+      <h3>여는 이야기</h3>
+      <p>슬라이드 오타 하나에 일곱 단계를 다시 밟는 장면에서 시작해, 오늘 손에 남길 세 가지를 봅니다.</p>
+      <span class="jfoot">슬라이드 5장 · 1–5 →</span>
+    </a>
+    <a class="jcard" href="#slides" data-jump="chapter1" style="--pc:#CC347B">
+      <span class="ghost" aria-hidden="true">1</span>
+      <span class="jlabel">1장</span>
+      <h3>1장 · 무엇을 자동화할 것인가</h3>
+      <p>넘길 일을 세 기준으로 고르고, 문제 정의서 아홉 칸에 적습니다</p>
+      <span class="jfoot">슬라이드 12장 · 6–17 →</span>
+    </a>
+    <a class="jcard" href="#slides" data-jump="chapter2" style="--pc:#6256A2">
+      <span class="ghost" aria-hidden="true">2</span>
+      <span class="jlabel">2장</span>
+      <h3>2장 · [실습 파트 1] 루틴을 스킬로 만들기</h3>
+      <p>한 번 해 보고, 스킬로 남기고, 이름으로 부르기</p>
+      <span class="jfoot">슬라이드 18장 · 18–35 →</span>
+    </a>
+    <a class="jcard" href="#slides" data-jump="chapter3" style="--pc:#CC347B">
+      <span class="ghost" aria-hidden="true">3</span>
+      <span class="jlabel">3장</span>
+      <h3>3장 · 워크플로우의 길이와 사람의 자리</h3>
+      <p>한 번에 끝까지 돌리지 않고, 파일로 남는 곳에서 끊고, 사람이 볼 자리를 정합니다</p>
+      <span class="jfoot">슬라이드 7장 · 36–42 →</span>
+    </a>
+    <a class="jcard" href="#slides" data-jump="chapter4" style="--pc:#6256A2">
+      <span class="ghost" aria-hidden="true">4</span>
+      <span class="jlabel">4장</span>
+      <h3>4장 · 블로그를 굴리는 스킬 묶음</h3>
+      <p>논문 한 편이 여섯 칸 리뷰가 되기까지, 조용한 고장을 잡는 법</p>
+      <span class="jfoot">슬라이드 8장 · 43–50 →</span>
+    </a>
+    <a class="jcard" href="#slides" data-jump="chapter5" style="--pc:#CC347B">
+      <span class="ghost" aria-hidden="true">5</span>
+      <span class="jlabel">5장</span>
+      <h3>5장 · 책 일곱 권을 쓴 파이프라인</h3>
+      <p>글 한 편에 통한 루틴을 책 한 권으로 — 역할 나누기, 큰 루틴 쪼개기, 완료 근거</p>
+      <span class="jfoot">슬라이드 5장 · 51–55 →</span>
+    </a>
+    <a class="jcard" href="#slides" data-jump="chapter6" style="--pc:#6256A2">
+      <span class="ghost" aria-hidden="true">6</span>
+      <span class="jlabel">6장</span>
+      <h3>6장 · [실습 파트 2] 웹앱으로 확장하기</h3>
+      <p>루틴이 만든 결과에 주소 하나를 붙여 QR로 건네고, 고친 뒤에는 다시 올립니다</p>
+      <span class="jfoot">슬라이드 14장 · 56–69 →</span>
+    </a>
+    <a class="jcard" href="#slides" data-jump="chapter7" style="--pc:#CC347B">
+      <span class="ghost" aria-hidden="true">7</span>
+      <span class="jlabel">7장</span>
+      <h3>7장 · 도구가 아니라 표준 위에</h3>
+      <p>바뀌는 화면 대신 바닥의 약속과 글로 적은 절차 위에 짓는 자동화</p>
+      <span class="jfoot">슬라이드 8장 · 70–77 →</span>
+    </a>
+    <a class="jcard" href="#slides" data-jump="closing" style="--pc:#6256A2">
+      <span class="ghost" aria-hidden="true">8</span>
+      <span class="jlabel">맺음</span>
+      <h3>맺음 · 오늘 손에 남은 세 장</h3>
+      <p>문제 정의서 한 장, SKILL.md 한 장, 웹 주소 하나와 다음 한 걸음</p>
+      <span class="jfoot">슬라이드 5장 · 78–82 →</span>
+    </a>
+    </div>
+  </div>
+</section>
+<section class="band alt" id="slides">
+  <div class="wrap">
+    <div class="sec-head">
+      
+      <h2>강의 슬라이드</h2>
+      
+    </div>
+    <div class="tabs" role="tablist" aria-label="파트 고르기">
+      <button class="tab" type="button" data-part="all" aria-selected="true">전체 82장</button>
+      <button class="tab" type="button" data-part="opening" aria-selected="false">여는 이야기</button>
+      <button class="tab" type="button" data-part="chapter1" aria-selected="false">1장</button>
+      <button class="tab" type="button" data-part="chapter2" aria-selected="false">2장</button>
+      <button class="tab" type="button" data-part="chapter3" aria-selected="false">3장</button>
+      <button class="tab" type="button" data-part="chapter4" aria-selected="false">4장</button>
+      <button class="tab" type="button" data-part="chapter5" aria-selected="false">5장</button>
+      <button class="tab" type="button" data-part="chapter6" aria-selected="false">6장</button>
+      <button class="tab" type="button" data-part="chapter7" aria-selected="false">7장</button>
+      <button class="tab" type="button" data-part="closing" aria-selected="false">맺음</button>
+    </div>
+    <div class="grid" id="grid">
+      <figure class="thumb" data-part="opening" data-index="0"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 1 클로드코드와 깃허브로 반복작업을 워크플로우화하고 웹앱으로 확장하기 크게 보기">
+        <img src="assets/thumbs/s1.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 1 — 클로드코드와 깃허브로 반복작업을 워크플로우화하고 웹앱으로 확장하기">
+        <figcaption><span class="num">1</span><span class="cap">클로드코드와 깃허브로 반복작업을 워크플로우화하고 웹앱으로 확장하기</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="opening" data-index="1"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 2 슬라이드 오타 하나에 일곱 단계를 다시 밟고 계십니까? 크게 보기">
+        <img src="assets/thumbs/s2.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 2 — 슬라이드 오타 하나에 일곱 단계를 다시 밟고 계십니까?">
+        <figcaption><span class="num">2</span><span class="cap">슬라이드 오타 하나에 일곱 단계를 다시 밟고 계십니까?</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="opening" data-index="2"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 3 학교급은 달라도 되풀이되는 일의 순서는 닮았습니다 크게 보기">
+        <img src="assets/thumbs/s3.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 3 — 학교급은 달라도 되풀이되는 일의 순서는 닮았습니다">
+        <figcaption><span class="num">3</span><span class="cap">학교급은 달라도 되풀이되는 일의 순서는 닮았습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="opening" data-index="3"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 4 어떤 AI를 쓰든 세 가지를 남기면 루틴이 됩니다 크게 보기">
+        <img src="assets/thumbs/s4.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 4 — 어떤 AI를 쓰든 세 가지를 남기면 루틴이 됩니다">
+        <figcaption><span class="num">4</span><span class="cap">어떤 AI를 쓰든 세 가지를 남기면 루틴이 됩니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="opening" data-index="4"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 5 오늘의 흐름을 먼저 봅니다 크게 보기">
+        <img src="assets/thumbs/s5.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 5 — 오늘의 흐름을 먼저 봅니다">
+        <figcaption><span class="num">5</span><span class="cap">오늘의 흐름을 먼저 봅니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter1" data-index="5"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 6 무엇을 자동화할 것인가 크게 보기">
+        <img src="assets/thumbs/s6.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 6 — 무엇을 자동화할 것인가">
+        <figcaption><span class="num">6</span><span class="cap">무엇을 자동화할 것인가</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter1" data-index="6"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 7 반복·규칙·확인, 세 질문을 통과한 일부터 맡깁니다 크게 보기">
+        <img src="assets/thumbs/s7.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 7 — 반복·규칙·확인, 세 질문을 통과한 일부터 맡깁니다">
+        <figcaption><span class="num">7</span><span class="cap">반복·규칙·확인, 세 질문을 통과한 일부터 맡깁니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter1" data-index="7"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 8 지금 5분, 내 업무 세 개에 점수를 매겨 봅니다 크게 보기">
+        <img src="assets/thumbs/s8.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 8 — 지금 5분, 내 업무 세 개에 점수를 매겨 봅니다">
+        <figcaption><span class="num">8</span><span class="cap">지금 5분, 내 업무 세 개에 점수를 매겨 봅니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter1" data-index="8"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 9 6점은 맡기고, 0점이 나온 칸은 사람의 몫입니다 크게 보기">
+        <img src="assets/thumbs/s9.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 9 — 6점은 맡기고, 0점이 나온 칸은 사람의 몫입니다">
+        <figcaption><span class="num">9</span><span class="cap">6점은 맡기고, 0점이 나온 칸은 사람의 몫입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter1" data-index="9"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 10 판단·관계·한 번뿐인 일은 자동화하지 않습니다 크게 보기">
+        <img src="assets/thumbs/s10.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 10 — 판단·관계·한 번뿐인 일은 자동화하지 않습니다">
+        <figcaption><span class="num">10</span><span class="cap">판단·관계·한 번뿐인 일은 자동화하지 않습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter1" data-index="10"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 11 통째로 4점인 일도 쪼개면 6점 조각이 나옵니다 크게 보기">
+        <img src="assets/thumbs/s11.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 11 — 통째로 4점인 일도 쪼개면 6점 조각이 나옵니다">
+        <figcaption><span class="num">11</span><span class="cap">통째로 4점인 일도 쪼개면 6점 조각이 나옵니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter1" data-index="11"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 12 근쌤은 일곱 질문을 ACE 모형으로 묶어 Gems에 담았습니다 크게 보기">
+        <img src="assets/thumbs/s12.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 12 — 근쌤은 일곱 질문을 ACE 모형으로 묶어 Gems에 담았습니다">
+        <figcaption><span class="num">12</span><span class="cap">근쌤은 일곱 질문을 ACE 모형으로 묶어 Gems에 담았습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter1" data-index="12"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 13 발표 자료 나눠 주기 일곱 단계 중 여섯은 기계의 몫입니다 크게 보기">
+        <img src="assets/thumbs/s13.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 13 — 발표 자료 나눠 주기 일곱 단계 중 여섯은 기계의 몫입니다">
+        <figcaption><span class="num">13</span><span class="cap">발표 자료 나눠 주기 일곱 단계 중 여섯은 기계의 몫입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter1" data-index="13"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 14 문제 정의서는 입력·출력·사람의 확인을 한 문장에 담습니다 크게 보기">
+        <img src="assets/thumbs/s14.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 14 — 문제 정의서는 입력·출력·사람의 확인을 한 문장에 담습니다">
+        <figcaption><span class="num">14</span><span class="cap">문제 정의서는 입력·출력·사람의 확인을 한 문장에 담습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter1" data-index="14"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 15 아홉 칸 중 &#39;사용자의 최종역할&#39; 칸을 비우면 반쪽 설계입니다 크게 보기">
+        <img src="assets/thumbs/s15.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 15 — 아홉 칸 중 &#39;사용자의 최종역할&#39; 칸을 비우면 반쪽 설계입니다">
+        <figcaption><span class="num">15</span><span class="cap">아홉 칸 중 &#39;사용자의 최종역할&#39; 칸을 비우면 반쪽 설계입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter1" data-index="15"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 16 막연한 불편, 통째로 맡기기, &#39;확인&#39; 한 단어가 흔한 실수입니다 크게 보기">
+        <img src="assets/thumbs/s16.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 16 — 막연한 불편, 통째로 맡기기, &#39;확인&#39; 한 단어가 흔한 실수입니다">
+        <figcaption><span class="num">16</span><span class="cap">막연한 불편, 통째로 맡기기, &#39;확인&#39; 한 단어가 흔한 실수입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter1" data-index="16"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 17 AX보다 DX가 먼저입니다 크게 보기">
+        <img src="assets/thumbs/s17.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 17 — AX보다 DX가 먼저입니다">
+        <figcaption><span class="num">17</span><span class="cap">AX보다 DX가 먼저입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="17"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 18 [실습 파트 1] 루틴을 스킬로 만들기 크게 보기">
+        <img src="assets/thumbs/s18.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 18 — [실습 파트 1] 루틴을 스킬로 만들기">
+        <figcaption><span class="num">18</span><span class="cap">[실습 파트 1] 루틴을 스킬로 만들기</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="18"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 19 스킬은 지침을 저장해 둔 업무 매뉴얼 한 장입니다 크게 보기">
+        <img src="assets/thumbs/s19.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 19 — 스킬은 지침을 저장해 둔 업무 매뉴얼 한 장입니다">
+        <figcaption><span class="num">19</span><span class="cap">스킬은 지침을 저장해 둔 업무 매뉴얼 한 장입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="19"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 20 오늘 쓰는 도구는 대부분 무료이고, 에이전트만 구독이 필요합니다 크게 보기">
+        <img src="assets/thumbs/s20.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 20 — 오늘 쓰는 도구는 대부분 무료이고, 에이전트만 구독이 필요합니다">
+        <figcaption><span class="num">20</span><span class="cap">오늘 쓰는 도구는 대부분 무료이고, 에이전트만 구독이 필요합니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="20"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 21 [실습 1-1] VS Code로 폴더를 열고 터미널에서 claude를 켭니다 크게 보기">
+        <img src="assets/thumbs/s21.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 21 — [실습 1-1] VS Code로 폴더를 열고 터미널에서 claude를 켭니다">
+        <figcaption><span class="num">21</span><span class="cap">[실습 1-1] VS Code로 폴더를 열고 터미널에서 claude를 켭니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="21"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 22 처음 켜면 폴더를 믿어도 되는지 묻고, 기본 선택은 No입니다 크게 보기">
+        <img src="assets/thumbs/s22.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 22 — 처음 켜면 폴더를 믿어도 되는지 묻고, 기본 선택은 No입니다">
+        <figcaption><span class="num">22</span><span class="cap">처음 켜면 폴더를 믿어도 되는지 묻고, 기본 선택은 No입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="22"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 23 [실습 1-2] 먼저 여섯 줄 요청으로 일을 한 번 시켜 봅니다 크게 보기">
+        <img src="assets/thumbs/s23.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 23 — [실습 1-2] 먼저 여섯 줄 요청으로 일을 한 번 시켜 봅니다">
+        <figcaption><span class="num">23</span><span class="cap">[실습 1-2] 먼저 여섯 줄 요청으로 일을 한 번 시켜 봅니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="23"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 24 결과는 브라우저로 열어 표지·넘기기·목차를 확인합니다 크게 보기">
+        <img src="assets/thumbs/s24.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 24 — 결과는 브라우저로 열어 표지·넘기기·목차를 확인합니다">
+        <figcaption><span class="num">24</span><span class="cap">결과는 브라우저로 열어 표지·넘기기·목차를 확인합니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="24"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 25 [실습 1-3] 지금까지 한 작업을 스킬로 만들어 달라고 합니다 크게 보기">
+        <img src="assets/thumbs/s25.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 25 — [실습 1-3] 지금까지 한 작업을 스킬로 만들어 달라고 합니다">
+        <figcaption><span class="num">25</span><span class="cap">[실습 1-3] 지금까지 한 작업을 스킬로 만들어 달라고 합니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="25"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 26 에이전트가 써 준 SKILL.md는 사람이 세 가지를 읽습니다 크게 보기">
+        <img src="assets/thumbs/s26.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 26 — 에이전트가 써 준 SKILL.md는 사람이 세 가지를 읽습니다">
+        <figcaption><span class="num">26</span><span class="cap">에이전트가 써 준 SKILL.md는 사람이 세 가지를 읽습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="26"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 27 다듬어 달라는 한 문장으로 72줄이 다섯 줄 절차가 됩니다 크게 보기">
+        <img src="assets/thumbs/s27.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 27 — 다듬어 달라는 한 문장으로 72줄이 다섯 줄 절차가 됩니다">
+        <figcaption><span class="num">27</span><span class="cap">다듬어 달라는 한 문장으로 72줄이 다섯 줄 절차가 됩니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="27"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 28 [실습 1-4] 대화를 비우고 이름만 불러도 같은 순서로 묶습니다 크게 보기">
+        <img src="assets/thumbs/s28.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 28 — [실습 1-4] 대화를 비우고 이름만 불러도 같은 순서로 묶습니다">
+        <figcaption><span class="num">28</span><span class="cap">[실습 1-4] 대화를 비우고 이름만 불러도 같은 순서로 묶습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="28"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 29 두 번째는 40초, 사람이 확인할 단계 앞에서 멈춰 보고합니다 크게 보기">
+        <img src="assets/thumbs/s29.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 29 — 두 번째는 40초, 사람이 확인할 단계 앞에서 멈춰 보고합니다">
+        <figcaption><span class="num">29</span><span class="cap">두 번째는 40초, 사람이 확인할 단계 앞에서 멈춰 보고합니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="29"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 30 고친 발표자가 표지에 보이면 실습 파트 1은 성공입니다 크게 보기">
+        <img src="assets/thumbs/s30.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 30 — 고친 발표자가 표지에 보이면 실습 파트 1은 성공입니다">
+        <figcaption><span class="num">30</span><span class="cap">고친 발표자가 표지에 보이면 실습 파트 1은 성공입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="30"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 31 이 폴더에서만 쓰면 프로젝트 스킬, 어디서나 쓰면 전역 스킬입니다 크게 보기">
+        <img src="assets/thumbs/s31.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 31 — 이 폴더에서만 쓰면 프로젝트 스킬, 어디서나 쓰면 전역 스킬입니다">
+        <figcaption><span class="num">31</span><span class="cap">이 폴더에서만 쓰면 프로젝트 스킬, 어디서나 쓰면 전역 스킬입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="31"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 32 머리말 세 규칙을 지키면 직접 고쳐도 잘 불립니다 크게 보기">
+        <img src="assets/thumbs/s32.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 32 — 머리말 세 규칙을 지키면 직접 고쳐도 잘 불립니다">
+        <figcaption><span class="num">32</span><span class="cap">머리말 세 규칙을 지키면 직접 고쳐도 잘 불립니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="32"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 33 같은 SKILL.md는 Codex에서도, 챗봇 지침 칸에서도 쓰입니다 크게 보기">
+        <img src="assets/thumbs/s33.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 33 — 같은 SKILL.md는 Codex에서도, 챗봇 지침 칸에서도 쓰입니다">
+        <figcaption><span class="num">33</span><span class="cap">같은 SKILL.md는 Codex에서도, 챗봇 지침 칸에서도 쓰입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="33"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 34 두 번째 스킬은 가정통신문처럼 매 학기 돌아오는 일로 고릅니다 크게 보기">
+        <img src="assets/thumbs/s34.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 34 — 두 번째 스킬은 가정통신문처럼 매 학기 돌아오는 일로 고릅니다">
+        <figcaption><span class="num">34</span><span class="cap">두 번째 스킬은 가정통신문처럼 매 학기 돌아오는 일로 고릅니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter2" data-index="34"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 35 다음에 되풀이할 일은 어떤 한 문장으로 스킬이 됩니까? 크게 보기">
+        <img src="assets/thumbs/s35.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 35 — 다음에 되풀이할 일은 어떤 한 문장으로 스킬이 됩니까?">
+        <figcaption><span class="num">35</span><span class="cap">다음에 되풀이할 일은 어떤 한 문장으로 스킬이 됩니까?</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter3" data-index="35"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 36 워크플로우의 길이와 사람의 자리 크게 보기">
+        <img src="assets/thumbs/s36.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 36 — 워크플로우의 길이와 사람의 자리">
+        <figcaption><span class="num">36</span><span class="cap">워크플로우의 길이와 사람의 자리</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter3" data-index="36"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 37 한 번에 끝까지 돌리면 오타가 공지 문자까지 실려 나갑니다 크게 보기">
+        <img src="assets/thumbs/s37.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 37 — 한 번에 끝까지 돌리면 오타가 공지 문자까지 실려 나갑니다">
+        <figcaption><span class="num">37</span><span class="cap">한 번에 끝까지 돌리면 오타가 공지 문자까지 실려 나갑니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter3" data-index="37"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 38 결과가 파일로 남는 지점에서 끊으면 한 단계만 다시 돌립니다 크게 보기">
+        <img src="assets/thumbs/s38.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 38 — 결과가 파일로 남는 지점에서 끊으면 한 단계만 다시 돌립니다">
+        <figcaption><span class="num">38</span><span class="cap">결과가 파일로 남는 지점에서 끊으면 한 단계만 다시 돌립니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter3" data-index="38"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 39 같은 일도 다섯 단계로 끊어 맡기면 사람은 두 번만 봅니다 크게 보기">
+        <img src="assets/thumbs/s39.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 39 — 같은 일도 다섯 단계로 끊어 맡기면 사람은 두 번만 봅니다">
+        <figcaption><span class="num">39</span><span class="cap">같은 일도 다섯 단계로 끊어 맡기면 사람은 두 번만 봅니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter3" data-index="39"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 40 사람의 자리는 결과가 달라지는 곳에만 둡니다 크게 보기">
+        <img src="assets/thumbs/s40.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 40 — 사람의 자리는 결과가 달라지는 곳에만 둡니다">
+        <figcaption><span class="num">40</span><span class="cap">사람의 자리는 결과가 달라지는 곳에만 둡니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter3" data-index="40"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 41 &#39;확인한다&#39; 대신 무엇과 대조할지 적습니다 크게 보기">
+        <img src="assets/thumbs/s41.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 41 — &#39;확인한다&#39; 대신 무엇과 대조할지 적습니다">
+        <figcaption><span class="num">41</span><span class="cap">&#39;확인한다&#39; 대신 무엇과 대조할지 적습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter3" data-index="41"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 42 스킬은 많이 만드는 것보다 오래 쓰는 것이 중요합니다 크게 보기">
+        <img src="assets/thumbs/s42.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 42 — 스킬은 많이 만드는 것보다 오래 쓰는 것이 중요합니다">
+        <figcaption><span class="num">42</span><span class="cap">스킬은 많이 만드는 것보다 오래 쓰는 것이 중요합니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter4" data-index="42"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 43 블로그를 굴리는 스킬 묶음 크게 보기">
+        <img src="assets/thumbs/s43.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 43 — 블로그를 굴리는 스킬 묶음">
+        <figcaption><span class="num">43</span><span class="cap">블로그를 굴리는 스킬 묶음</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter4" data-index="43"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 44 /paper는 어떤 논문이든 같은 여섯 칸으로 씁니다 크게 보기">
+        <img src="assets/thumbs/s44.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 44 — /paper는 어떤 논문이든 같은 여섯 칸으로 씁니다">
+        <figcaption><span class="num">44</span><span class="cap">/paper는 어떤 논문이든 같은 여섯 칸으로 씁니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter4" data-index="44"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 45 칸이 같으니 쌓인 글이 찾고 묻는 자료가 됩니다 크게 보기">
+        <img src="assets/thumbs/s45.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 45 — 칸이 같으니 쌓인 글이 찾고 묻는 자료가 됩니다">
+        <figcaption><span class="num">45</span><span class="cap">칸이 같으니 쌓인 글이 찾고 묻는 자료가 됩니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter4" data-index="45"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 46 입구는 재료마다 따로, 뒤처리는 한 통로로 모읍니다 크게 보기">
+        <img src="assets/thumbs/s46.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 46 — 입구는 재료마다 따로, 뒤처리는 한 통로로 모읍니다">
+        <figcaption><span class="num">46</span><span class="cap">입구는 재료마다 따로, 뒤처리는 한 통로로 모읍니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter4" data-index="46"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 47 자동으로 올라간 글은 체크리스트로 사람이 봅니다 크게 보기">
+        <img src="assets/thumbs/s47.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 47 — 자동으로 올라간 글은 체크리스트로 사람이 봅니다">
+        <figcaption><span class="num">47</span><span class="cap">자동으로 올라간 글은 체크리스트로 사람이 봅니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter4" data-index="47"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 48 검수 시점은 &#39;나간 뒤 고칠 수 있는가&#39;로 정합니다 크게 보기">
+        <img src="assets/thumbs/s48.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 48 — 검수 시점은 &#39;나간 뒤 고칠 수 있는가&#39;로 정합니다">
+        <figcaption><span class="num">48</span><span class="cap">검수 시점은 &#39;나간 뒤 고칠 수 있는가&#39;로 정합니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter4" data-index="48"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 49 자동화는 고장 나도 오류 메시지를 보내지 않습니다 크게 보기">
+        <img src="assets/thumbs/s49.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 49 — 자동화는 고장 나도 오류 메시지를 보내지 않습니다">
+        <figcaption><span class="num">49</span><span class="cap">자동화는 고장 나도 오류 메시지를 보내지 않습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter4" data-index="49"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 50 이력은 &#39;발행했다는 기록&#39;이지 &#39;올라갔다는 증거&#39;가 아닙니다 크게 보기">
+        <img src="assets/thumbs/s50.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 50 — 이력은 &#39;발행했다는 기록&#39;이지 &#39;올라갔다는 증거&#39;가 아닙니다">
+        <figcaption><span class="num">50</span><span class="cap">이력은 &#39;발행했다는 기록&#39;이지 &#39;올라갔다는 증거&#39;가 아닙니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter5" data-index="50"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 51 책 일곱 권을 쓴 파이프라인 크게 보기">
+        <img src="assets/thumbs/s51.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 51 — 책 일곱 권을 쓴 파이프라인">
+        <figcaption><span class="num">51</span><span class="cap">책 일곱 권을 쓴 파이프라인</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter5" data-index="51"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 52 혼자 하던 순서를 다섯 역할로 나누고 집필에만 좋은 모델을 씁니다 크게 보기">
+        <img src="assets/thumbs/s52.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 52 — 혼자 하던 순서를 다섯 역할로 나누고 집필에만 좋은 모델을 씁니다">
+        <figcaption><span class="num">52</span><span class="cap">혼자 하던 순서를 다섯 역할로 나누고 집필에만 좋은 모델을 씁니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter5" data-index="52"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 53 큰 스킬은 순서와 멈출 자리만, 단계는 작은 스킬이 맡습니다 크게 보기">
+        <img src="assets/thumbs/s53.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 53 — 큰 스킬은 순서와 멈출 자리만, 단계는 작은 스킬이 맡습니다">
+        <figcaption><span class="num">53</span><span class="cap">큰 스킬은 순서와 멈출 자리만, 단계는 작은 스킬이 맡습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter5" data-index="53"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 54 절차를 넘길 때는 단계마다 완료 근거를 남깁니다 크게 보기">
+        <img src="assets/thumbs/s54.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 54 — 절차를 넘길 때는 단계마다 완료 근거를 남깁니다">
+        <figcaption><span class="num">54</span><span class="cap">절차를 넘길 때는 단계마다 완료 근거를 남깁니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter5" data-index="54"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 55 학년 교육과정 문서도 다섯 칸으로 나누면 사람 몫은 판단만 남습니다 크게 보기">
+        <img src="assets/thumbs/s55.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 55 — 학년 교육과정 문서도 다섯 칸으로 나누면 사람 몫은 판단만 남습니다">
+        <figcaption><span class="num">55</span><span class="cap">학년 교육과정 문서도 다섯 칸으로 나누면 사람 몫은 판단만 남습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="55"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 56 [실습 파트 2] 웹앱으로 확장하기 크게 보기">
+        <img src="assets/thumbs/s56.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 56 — [실습 파트 2] 웹앱으로 확장하기">
+        <figcaption><span class="num">56</span><span class="cap">[실습 파트 2] 웹앱으로 확장하기</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="56"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 57 파일을 건네면 인쇄물, 주소를 건네면 게시판입니다 크게 보기">
+        <img src="assets/thumbs/s57.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 57 — 파일을 건네면 인쇄물, 주소를 건네면 게시판입니다">
+        <figcaption><span class="num">57</span><span class="cap">파일을 건네면 인쇄물, 주소를 건네면 게시판입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="57"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 58 [실습 2-1] GitHub Desktop 버튼으로 저장소를 만들고 올립니다 크게 보기">
+        <img src="assets/thumbs/s58.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 58 — [실습 2-1] GitHub Desktop 버튼으로 저장소를 만들고 올립니다">
+        <figcaption><span class="num">58</span><span class="cap">[실습 2-1] GitHub Desktop 버튼으로 저장소를 만들고 올립니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="58"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 59 폴더를 추가하면 저장소로 만들지 먼저 묻습니다 크게 보기">
+        <img src="assets/thumbs/s59.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 59 — 폴더를 추가하면 저장소로 만들지 먼저 묻습니다">
+        <figcaption><span class="num">59</span><span class="cap">폴더를 추가하면 저장소로 만들지 먼저 묻습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="59"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 60 Publish 창에서 Keep this code private 체크를 꼭 풉니다 크게 보기">
+        <img src="assets/thumbs/s60.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 60 — Publish 창에서 Keep this code private 체크를 꼭 풉니다">
+        <figcaption><span class="num">60</span><span class="cap">Publish 창에서 Keep this code private 체크를 꼭 풉니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="60"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 61 [실습 2-2] Settings의 Pages에서 main을 고르면 주소가 켜집니다 크게 보기">
+        <img src="assets/thumbs/s61.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 61 — [실습 2-2] Settings의 Pages에서 main을 고르면 주소가 켜집니다">
+        <figcaption><span class="num">61</span><span class="cap">[실습 2-2] Settings의 Pages에서 main을 고르면 주소가 켜집니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="61"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 62 [실습 2-3] [QR]을 누르면 지금 주소가 QR로 그려집니다 크게 보기">
+        <img src="assets/thumbs/s62.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 62 — [실습 2-3] [QR]을 누르면 지금 주소가 QR로 그려집니다">
+        <figcaption><span class="num">62</span><span class="cap">[실습 2-3] [QR]을 누르면 지금 주소가 QR로 그려집니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="62"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 63 발표장 밖으로 주소를 나눌 때는 다른 기기에서 먼저 열어 봅니다 크게 보기">
+        <img src="assets/thumbs/s63.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 63 — 발표장 밖으로 주소를 나눌 때는 다른 기기에서 먼저 열어 봅니다">
+        <figcaption><span class="num">63</span><span class="cap">발표장 밖으로 주소를 나눌 때는 다른 기기에서 먼저 열어 봅니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="63"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 64 [실습 2-4] 고친 뒤에는 다시 묶고, 커밋하고, 올립니다 크게 보기">
+        <img src="assets/thumbs/s64.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 64 — [실습 2-4] 고친 뒤에는 다시 묶고, 커밋하고, 올립니다">
+        <figcaption><span class="num">64</span><span class="cap">[실습 2-4] 고친 뒤에는 다시 묶고, 커밋하고, 올립니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="64"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 65 커밋 버튼을 사람이 누르는 순간이 사람의 자리입니다 크게 보기">
+        <img src="assets/thumbs/s65.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 65 — 커밋 버튼을 사람이 누르는 순간이 사람의 자리입니다">
+        <figcaption><span class="num">65</span><span class="cap">커밋 버튼을 사람이 누르는 순간이 사람의 자리입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="65"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 66 [실습 2-5] 동료에게는 루틴의 뼈대를 건네고 재료만 바꿉니다 크게 보기">
+        <img src="assets/thumbs/s66.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 66 — [실습 2-5] 동료에게는 루틴의 뼈대를 건네고 재료만 바꿉니다">
+        <figcaption><span class="num">66</span><span class="cap">[실습 2-5] 동료에게는 루틴의 뼈대를 건네고 재료만 바꿉니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="66"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 67 공개 주소에 올리면 안 되는 것은 처음부터 넣지 않습니다 크게 보기">
+        <img src="assets/thumbs/s67.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 67 — 공개 주소에 올리면 안 되는 것은 처음부터 넣지 않습니다">
+        <figcaption><span class="num">67</span><span class="cap">공개 주소에 올리면 안 되는 것은 처음부터 넣지 않습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="67"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 68 같은 원리로 강의 자료와 브리핑 사이트도 주소로 넓혔습니다 크게 보기">
+        <img src="assets/thumbs/s68.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 68 — 같은 원리로 강의 자료와 브리핑 사이트도 주소로 넓혔습니다">
+        <figcaption><span class="num">68</span><span class="cap">같은 원리로 강의 자료와 브리핑 사이트도 주소로 넓혔습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter6" data-index="68"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 69 내 루틴의 결과를 누구에게 어떤 주소로 건네시겠습니까? 크게 보기">
+        <img src="assets/thumbs/s69.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 69 — 내 루틴의 결과를 누구에게 어떤 주소로 건네시겠습니까?">
+        <figcaption><span class="num">69</span><span class="cap">내 루틴의 결과를 누구에게 어떤 주소로 건네시겠습니까?</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter7" data-index="69"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 70 도구가 아니라 표준 위에 크게 보기">
+        <img src="assets/thumbs/s70.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 70 — 도구가 아니라 표준 위에">
+        <figcaption><span class="num">70</span><span class="cap">도구가 아니라 표준 위에</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter7" data-index="70"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 71 화면을 더듬는 자동화는 상대가 화면을 바꾸는 날 깨집니다 크게 보기">
+        <img src="assets/thumbs/s71.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 71 — 화면을 더듬는 자동화는 상대가 화면을 바꾸는 날 깨집니다">
+        <figcaption><span class="num">71</span><span class="cap">화면을 더듬는 자동화는 상대가 화면을 바꾸는 날 깨집니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter7" data-index="71"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 72 제품 아래의 바닥과 사이트가 내놓는 도구를 봅니다 크게 보기">
+        <img src="assets/thumbs/s72.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 72 — 제품 아래의 바닥과 사이트가 내놓는 도구를 봅니다">
+        <figcaption><span class="num">72</span><span class="cap">제품 아래의 바닥과 사이트가 내놓는 도구를 봅니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter7" data-index="72"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 73 SKILL.md에는 메뉴 위치가 아니라 일의 이름을 적습니다 크게 보기">
+        <img src="assets/thumbs/s73.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 73 — SKILL.md에는 메뉴 위치가 아니라 일의 이름을 적습니다">
+        <figcaption><span class="num">73</span><span class="cap">SKILL.md에는 메뉴 위치가 아니라 일의 이름을 적습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter7" data-index="73"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 74 build.js는 얇은 도구, SKILL.md는 남는 절차입니다 크게 보기">
+        <img src="assets/thumbs/s74.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 74 — build.js는 얇은 도구, SKILL.md는 남는 절차입니다">
+        <figcaption><span class="num">74</span><span class="cap">build.js는 얇은 도구, SKILL.md는 남는 절차입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter7" data-index="74"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 75 판정이 막힐 때 어느 쪽으로 기울지 미리 정합니다 크게 보기">
+        <img src="assets/thumbs/s75.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 75 — 판정이 막힐 때 어느 쪽으로 기울지 미리 정합니다">
+        <figcaption><span class="num">75</span><span class="cap">판정이 막힐 때 어느 쪽으로 기울지 미리 정합니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter7" data-index="75"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 76 열어 준 것을 세고, 메일함은 언제나 0개입니다 크게 보기">
+        <img src="assets/thumbs/s76.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 76 — 열어 준 것을 세고, 메일함은 언제나 0개입니다">
+        <figcaption><span class="num">76</span><span class="cap">열어 준 것을 세고, 메일함은 언제나 0개입니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="chapter7" data-index="76"
+               role="button" tabindex="0" style="--pc:#CC347B"
+               aria-label="슬라이드 77 새 도구를 들일 때는 다섯 가지를 먼저 묻습니다 크게 보기">
+        <img src="assets/thumbs/s77.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 77 — 새 도구를 들일 때는 다섯 가지를 먼저 묻습니다">
+        <figcaption><span class="num">77</span><span class="cap">새 도구를 들일 때는 다섯 가지를 먼저 묻습니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="closing" data-index="77"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 78 오늘 손에 남은 세 장 크게 보기">
+        <img src="assets/thumbs/s78.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 78 — 오늘 손에 남은 세 장">
+        <figcaption><span class="num">78</span><span class="cap">오늘 손에 남은 세 장</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="closing" data-index="78"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 79 다음 한 주에는 작은 루틴 하나를 두 번 불러 봅니다 크게 보기">
+        <img src="assets/thumbs/s79.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 79 — 다음 한 주에는 작은 루틴 하나를 두 번 불러 봅니다">
+        <figcaption><span class="num">79</span><span class="cap">다음 한 주에는 작은 루틴 하나를 두 번 불러 봅니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="closing" data-index="79"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 80 막히면 부록과 이어서 읽을 네 권으로 갑니다 크게 보기">
+        <img src="assets/thumbs/s80.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 80 — 막히면 부록과 이어서 읽을 네 권으로 갑니다">
+        <figcaption><span class="num">80</span><span class="cap">막히면 부록과 이어서 읽을 네 권으로 갑니다</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="closing" data-index="80"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 81 11월 7일에는 문제 정의서 한 장을 먼저 챙겨 오십시오 크게 보기">
+        <img src="assets/thumbs/s81.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 81 — 11월 7일에는 문제 정의서 한 장을 먼저 챙겨 오십시오">
+        <figcaption><span class="num">81</span><span class="cap">11월 7일에는 문제 정의서 한 장을 먼저 챙겨 오십시오</span></figcaption>
+      </figure>
+      <figure class="thumb" data-part="closing" data-index="81"
+               role="button" tabindex="0" style="--pc:#6256A2"
+               aria-label="슬라이드 82 도구는 바뀌어도 적어 둔 루틴은 남습니다 크게 보기">
+        <img src="assets/thumbs/s82.webp" width="520" height="293" loading="lazy" decoding="async"
+             alt="슬라이드 82 — 도구는 바뀌어도 적어 둔 루틴은 남습니다">
+        <figcaption><span class="num">82</span><span class="cap">도구는 바뀌어도 적어 둔 루틴은 남습니다</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+<section class="band" id="downloads">
+  <div class="wrap">
+    <div class="sec-head">
+      
+      <h2>자료 받기</h2>
+      
+    </div>
+    <div class="dl-list">
+    <a class="dl" href="pdf/justvuild-03-lecture.pdf" download>
+      <span class="ic" aria-hidden="true">PDF</span>
+      <span class="t"><b>강의 교안 PDF</b><span>82쪽 강의 자료</span></span>
+      <span class="sz">3.9MB</span>
+    </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="frow">
+
+      <div>
+        <b>인쇄 / PDF 저장</b>
+        <div style="margin-bottom:10px">메뉴와 버튼을 뺀 A4 형태로 출력됩니다.</div>
+        <button class="print-btn" type="button" id="printBtn">이 페이지 인쇄하기</button>
+      </div>
+    </div>
+    <p class="fine">© 김진관 · JUST VUILD 2026 사전연수 3회차 강의 자료</p>
+  </div>
+</footer>
+
+<!-- 라이트박스 -->
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="슬라이드 크게 보기">
+  <div class="lb-top">
+    <span class="lb-count" id="lbCount"></span>
+    <span class="lb-title" id="lbTitle"></span>
+    <button class="lb-close" id="lbClose" aria-label="닫기">✕</button>
+  </div>
+  <div class="lb-stage" id="lbStage">
+    <button class="lb-nav lb-prev" id="lbPrev" aria-label="이전 슬라이드">‹</button>
+    <img id="lbImg" alt="">
+    <button class="lb-nav lb-next" id="lbNext" aria-label="다음 슬라이드">›</button>
+  </div>
+  <div class="lb-foot">
+    <a id="lbOpen" href="#" target="_blank" rel="noopener">이미지 새 탭에서 열기</a>
+    <a id="lbPdf" href="#">이 파트 PDF 받기</a>
+  </div>
+</div>
+
+<!-- 프로젝터용 QR 전체화면 -->
+<div class="qr-full" id="qrFull" role="dialog" aria-modal="true" aria-label="QR 코드 크게 보기">
+  <div class="inner">
+    <h2>이 QR을 찍으면 오늘 자료가 열립니다</h2>
+    <p>폰 카메라를 QR에 비추기만 하면 됩니다. 앱은 필요 없습니다.</p>
+    <div class="big" id="qrBig"></div>
+    <div class="u" id="qrBigUrl"></div>
+    <button class="close" id="qrFullClose">닫기 (Esc)</button>
+  </div>
+</div>
+
+<script src="assets/vendor/qrcode.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var CFG = {"site":{"url":"https://tigerjk9.github.io/justvuild-03-lecture/"}};
+  var SLIDES = [{"n":1,"title":"클로드코드와 깃허브로 반복작업을 워크플로우화하고 웹앱으로 확장하기","full":"assets/slides/s1.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":2,"title":"슬라이드 오타 하나에 일곱 단계를 다시 밟고 계십니까?","full":"assets/slides/s2.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":3,"title":"학교급은 달라도 되풀이되는 일의 순서는 닮았습니다","full":"assets/slides/s3.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":4,"title":"어떤 AI를 쓰든 세 가지를 남기면 루틴이 됩니다","full":"assets/slides/s4.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":5,"title":"오늘의 흐름을 먼저 봅니다","full":"assets/slides/s5.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":6,"title":"무엇을 자동화할 것인가","full":"assets/slides/s6.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":7,"title":"반복·규칙·확인, 세 질문을 통과한 일부터 맡깁니다","full":"assets/slides/s7.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":8,"title":"지금 5분, 내 업무 세 개에 점수를 매겨 봅니다","full":"assets/slides/s8.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":9,"title":"6점은 맡기고, 0점이 나온 칸은 사람의 몫입니다","full":"assets/slides/s9.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":10,"title":"판단·관계·한 번뿐인 일은 자동화하지 않습니다","full":"assets/slides/s10.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":11,"title":"통째로 4점인 일도 쪼개면 6점 조각이 나옵니다","full":"assets/slides/s11.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":12,"title":"근쌤은 일곱 질문을 ACE 모형으로 묶어 Gems에 담았습니다","full":"assets/slides/s12.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":13,"title":"발표 자료 나눠 주기 일곱 단계 중 여섯은 기계의 몫입니다","full":"assets/slides/s13.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":14,"title":"문제 정의서는 입력·출력·사람의 확인을 한 문장에 담습니다","full":"assets/slides/s14.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":15,"title":"아홉 칸 중 '사용자의 최종역할' 칸을 비우면 반쪽 설계입니다","full":"assets/slides/s15.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":16,"title":"막연한 불편, 통째로 맡기기, '확인' 한 단어가 흔한 실수입니다","full":"assets/slides/s16.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":17,"title":"AX보다 DX가 먼저입니다","full":"assets/slides/s17.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":18,"title":"[실습 파트 1] 루틴을 스킬로 만들기","full":"assets/slides/s18.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":19,"title":"스킬은 지침을 저장해 둔 업무 매뉴얼 한 장입니다","full":"assets/slides/s19.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":20,"title":"오늘 쓰는 도구는 대부분 무료이고, 에이전트만 구독이 필요합니다","full":"assets/slides/s20.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":21,"title":"[실습 1-1] VS Code로 폴더를 열고 터미널에서 claude를 켭니다","full":"assets/slides/s21.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":22,"title":"처음 켜면 폴더를 믿어도 되는지 묻고, 기본 선택은 No입니다","full":"assets/slides/s22.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":23,"title":"[실습 1-2] 먼저 여섯 줄 요청으로 일을 한 번 시켜 봅니다","full":"assets/slides/s23.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":24,"title":"결과는 브라우저로 열어 표지·넘기기·목차를 확인합니다","full":"assets/slides/s24.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":25,"title":"[실습 1-3] 지금까지 한 작업을 스킬로 만들어 달라고 합니다","full":"assets/slides/s25.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":26,"title":"에이전트가 써 준 SKILL.md는 사람이 세 가지를 읽습니다","full":"assets/slides/s26.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":27,"title":"다듬어 달라는 한 문장으로 72줄이 다섯 줄 절차가 됩니다","full":"assets/slides/s27.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":28,"title":"[실습 1-4] 대화를 비우고 이름만 불러도 같은 순서로 묶습니다","full":"assets/slides/s28.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":29,"title":"두 번째는 40초, 사람이 확인할 단계 앞에서 멈춰 보고합니다","full":"assets/slides/s29.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":30,"title":"고친 발표자가 표지에 보이면 실습 파트 1은 성공입니다","full":"assets/slides/s30.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":31,"title":"이 폴더에서만 쓰면 프로젝트 스킬, 어디서나 쓰면 전역 스킬입니다","full":"assets/slides/s31.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":32,"title":"머리말 세 규칙을 지키면 직접 고쳐도 잘 불립니다","full":"assets/slides/s32.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":33,"title":"같은 SKILL.md는 Codex에서도, 챗봇 지침 칸에서도 쓰입니다","full":"assets/slides/s33.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":34,"title":"두 번째 스킬은 가정통신문처럼 매 학기 돌아오는 일로 고릅니다","full":"assets/slides/s34.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":35,"title":"다음에 되풀이할 일은 어떤 한 문장으로 스킬이 됩니까?","full":"assets/slides/s35.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":36,"title":"워크플로우의 길이와 사람의 자리","full":"assets/slides/s36.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":37,"title":"한 번에 끝까지 돌리면 오타가 공지 문자까지 실려 나갑니다","full":"assets/slides/s37.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":38,"title":"결과가 파일로 남는 지점에서 끊으면 한 단계만 다시 돌립니다","full":"assets/slides/s38.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":39,"title":"같은 일도 다섯 단계로 끊어 맡기면 사람은 두 번만 봅니다","full":"assets/slides/s39.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":40,"title":"사람의 자리는 결과가 달라지는 곳에만 둡니다","full":"assets/slides/s40.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":41,"title":"'확인한다' 대신 무엇과 대조할지 적습니다","full":"assets/slides/s41.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":42,"title":"스킬은 많이 만드는 것보다 오래 쓰는 것이 중요합니다","full":"assets/slides/s42.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":43,"title":"블로그를 굴리는 스킬 묶음","full":"assets/slides/s43.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":44,"title":"/paper는 어떤 논문이든 같은 여섯 칸으로 씁니다","full":"assets/slides/s44.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":45,"title":"칸이 같으니 쌓인 글이 찾고 묻는 자료가 됩니다","full":"assets/slides/s45.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":46,"title":"입구는 재료마다 따로, 뒤처리는 한 통로로 모읍니다","full":"assets/slides/s46.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":47,"title":"자동으로 올라간 글은 체크리스트로 사람이 봅니다","full":"assets/slides/s47.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":48,"title":"검수 시점은 '나간 뒤 고칠 수 있는가'로 정합니다","full":"assets/slides/s48.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":49,"title":"자동화는 고장 나도 오류 메시지를 보내지 않습니다","full":"assets/slides/s49.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":50,"title":"이력은 '발행했다는 기록'이지 '올라갔다는 증거'가 아닙니다","full":"assets/slides/s50.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":51,"title":"책 일곱 권을 쓴 파이프라인","full":"assets/slides/s51.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":52,"title":"혼자 하던 순서를 다섯 역할로 나누고 집필에만 좋은 모델을 씁니다","full":"assets/slides/s52.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":53,"title":"큰 스킬은 순서와 멈출 자리만, 단계는 작은 스킬이 맡습니다","full":"assets/slides/s53.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":54,"title":"절차를 넘길 때는 단계마다 완료 근거를 남깁니다","full":"assets/slides/s54.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":55,"title":"학년 교육과정 문서도 다섯 칸으로 나누면 사람 몫은 판단만 남습니다","full":"assets/slides/s55.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":56,"title":"[실습 파트 2] 웹앱으로 확장하기","full":"assets/slides/s56.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":57,"title":"파일을 건네면 인쇄물, 주소를 건네면 게시판입니다","full":"assets/slides/s57.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":58,"title":"[실습 2-1] GitHub Desktop 버튼으로 저장소를 만들고 올립니다","full":"assets/slides/s58.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":59,"title":"폴더를 추가하면 저장소로 만들지 먼저 묻습니다","full":"assets/slides/s59.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":60,"title":"Publish 창에서 Keep this code private 체크를 꼭 풉니다","full":"assets/slides/s60.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":61,"title":"[실습 2-2] Settings의 Pages에서 main을 고르면 주소가 켜집니다","full":"assets/slides/s61.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":62,"title":"[실습 2-3] [QR]을 누르면 지금 주소가 QR로 그려집니다","full":"assets/slides/s62.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":63,"title":"발표장 밖으로 주소를 나눌 때는 다른 기기에서 먼저 열어 봅니다","full":"assets/slides/s63.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":64,"title":"[실습 2-4] 고친 뒤에는 다시 묶고, 커밋하고, 올립니다","full":"assets/slides/s64.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":65,"title":"커밋 버튼을 사람이 누르는 순간이 사람의 자리입니다","full":"assets/slides/s65.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":66,"title":"[실습 2-5] 동료에게는 루틴의 뼈대를 건네고 재료만 바꿉니다","full":"assets/slides/s66.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":67,"title":"공개 주소에 올리면 안 되는 것은 처음부터 넣지 않습니다","full":"assets/slides/s67.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":68,"title":"같은 원리로 강의 자료와 브리핑 사이트도 주소로 넓혔습니다","full":"assets/slides/s68.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":69,"title":"내 루틴의 결과를 누구에게 어떤 주소로 건네시겠습니까?","full":"assets/slides/s69.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":70,"title":"도구가 아니라 표준 위에","full":"assets/slides/s70.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":71,"title":"화면을 더듬는 자동화는 상대가 화면을 바꾸는 날 깨집니다","full":"assets/slides/s71.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":72,"title":"제품 아래의 바닥과 사이트가 내놓는 도구를 봅니다","full":"assets/slides/s72.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":73,"title":"SKILL.md에는 메뉴 위치가 아니라 일의 이름을 적습니다","full":"assets/slides/s73.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":74,"title":"build.js는 얇은 도구, SKILL.md는 남는 절차입니다","full":"assets/slides/s74.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":75,"title":"판정이 막힐 때 어느 쪽으로 기울지 미리 정합니다","full":"assets/slides/s75.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":76,"title":"열어 준 것을 세고, 메일함은 언제나 0개입니다","full":"assets/slides/s76.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":77,"title":"새 도구를 들일 때는 다섯 가지를 먼저 묻습니다","full":"assets/slides/s77.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":78,"title":"오늘 손에 남은 세 장","full":"assets/slides/s78.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":79,"title":"다음 한 주에는 작은 루틴 하나를 두 번 불러 봅니다","full":"assets/slides/s79.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":80,"title":"막히면 부록과 이어서 읽을 네 권으로 갑니다","full":"assets/slides/s80.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":81,"title":"11월 7일에는 문제 정의서 한 장을 먼저 챙겨 오십시오","full":"assets/slides/s81.webp","pdf":"pdf/justvuild-03-lecture.pdf"},{"n":82,"title":"도구는 바뀌어도 적어 둔 루틴은 남습니다","full":"assets/slides/s82.webp","pdf":"pdf/justvuild-03-lecture.pdf"}];
+
+  /* --------------------------------------------------------
+     QR — 배포 주소를 따로 적지 않아도 지금 열린 주소로 만든다.
+     설정에 url이 있으면 그것을 쓰고, file://로 열었으면 직접 입력받는다.
+     -------------------------------------------------------- */
+
+  var LS_KEY = "lecture-site-url";
+  var urlBox   = document.getElementById("qrUrl");
+  var holder   = document.getElementById("qrHolder");
+  var bigBox   = document.getElementById("qrBig");
+  var bigUrl   = document.getElementById("qrBigUrl");
+  var setupIn  = document.getElementById("qrInput");
+
+  function currentUrl() {
+    if (CFG.site && CFG.site.url) return CFG.site.url;
+    try {
+      var saved = localStorage.getItem(LS_KEY);
+      if (saved) return saved;
+    } catch (e) { /* 사생활 보호 모드 — 저장 없이 진행 */ }
+    if (location.protocol === "file:") return "";
+    return location.origin + location.pathname.replace(/index\.html$/, "");
+  }
+
+  function drawQr(target, text, cell) {
+    if (!target) return;
+    target.innerHTML = "";
+    if (!text) {
+      target.classList.add("is-empty");
+      target.textContent = "주소가 아직 없습니다. 아래 ⚙에서 배포 주소를 넣으면 QR이 바로 만들어집니다.";
+      return;
+    }
+    target.classList.remove("is-empty");
+    try {
+      var qr = qrcode(0, "M");
+      qr.addData(text);
+      qr.make();
+      target.innerHTML = qr.createSvgTag({ cellSize: cell || 4, margin: 0, scalable: true });
+      var svg = target.querySelector("svg");
+      if (svg) {
+        svg.setAttribute("role", "img");
+        svg.setAttribute("aria-label", "이 페이지 주소의 QR 코드");
+        svg.removeAttribute("width");
+        svg.removeAttribute("height");
+      }
+    } catch (e) {
+      target.classList.add("is-empty");
+      target.textContent = "QR을 만들지 못했습니다: " + text;
+    }
+  }
+
+  function renderQr() {
+    var u = currentUrl();
+    drawQr(holder, u, 4);
+    drawQr(bigBox, u, 8);
+    var label = u || "(배포 전)";
+    if (urlBox) urlBox.textContent = label;
+    if (bigUrl) bigUrl.textContent = label;
+    if (setupIn && !setupIn.value) setupIn.value = u;
+  }
+
+  renderQr();
+
+  if (setupIn) {
+    setupIn.addEventListener("input", function () {
+      var v = setupIn.value.trim();
+      try { v ? localStorage.setItem(LS_KEY, v) : localStorage.removeItem(LS_KEY); } catch (e) {}
+      var u = v || currentUrl();
+      drawQr(holder, u, 4);
+      drawQr(bigBox, u, 8);
+      if (urlBox) urlBox.textContent = u || "(배포 전)";
+      if (bigUrl) bigUrl.textContent = u || "(배포 전)";
+    });
+  }
+
+  var copyBtn = document.getElementById("qrCopy");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", function () {
+      var u = currentUrl();
+      if (!u) return;
+      var done = function () {
+        var old = copyBtn.textContent;
+        copyBtn.textContent = "복사됨 ✓";
+        setTimeout(function () { copyBtn.textContent = old; }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(u).then(done, function () {});
+      } else {
+        var ta = document.createElement("textarea");
+        ta.value = u; document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); done(); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+    });
+  }
+
+  /* QR 전체화면 — 강의장 프로젝터에 띄우는 용도 */
+  var qrFull = document.getElementById("qrFull");
+  function openQrFull() { qrFull.classList.add("is-open"); document.body.style.overflow = "hidden"; }
+  function closeQrFull() { qrFull.classList.remove("is-open"); document.body.style.overflow = ""; }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-qr-open]"), function (b) {
+    b.addEventListener("click", openQrFull);
+  });
+  document.getElementById("qrFullClose").addEventListener("click", closeQrFull);
+  qrFull.addEventListener("click", function (e) { if (e.target === qrFull) closeQrFull(); });
+
+  /* --------------------------------------------------------
+     갤러리 탭
+     -------------------------------------------------------- */
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+  var figures = Array.prototype.slice.call(document.querySelectorAll(".thumb"));
+  var visible = figures.slice();
+
+  function applyFilter(part) {
+    visible = [];
+    figures.forEach(function (f) {
+      var hit = part === "all" || f.dataset.part === part;
+      f.style.display = hit ? "" : "none";
+      if (hit) visible.push(f);
+    });
+    tabs.forEach(function (t) {
+      t.setAttribute("aria-selected", String(t.dataset.part === part));
+    });
+  }
+
+  tabs.forEach(function (t) {
+    t.addEventListener("click", function () { applyFilter(t.dataset.part); });
+  });
+
+  /* 여정 카드 → 그 파트만 걸러 놓고 갤러리로 내려보낸다 */
+  Array.prototype.forEach.call(document.querySelectorAll("[data-jump]"), function (card) {
+    card.addEventListener("click", function () { applyFilter(card.dataset.jump); });
+  });
+
+  /* --------------------------------------------------------
+     라이트박스
+     -------------------------------------------------------- */
+
+  var lb      = document.getElementById("lb");
+  var lbImg   = document.getElementById("lbImg");
+  var lbCount = document.getElementById("lbCount");
+  var lbTitle = document.getElementById("lbTitle");
+  var lbPrev  = document.getElementById("lbPrev");
+  var lbNext  = document.getElementById("lbNext");
+  var lbOpen  = document.getElementById("lbOpen");
+  var lbPdf   = document.getElementById("lbPdf");
+  var lastFocus = null;
+  var cursor = 0;
+
+  function show(i) {
+    if (i < 0 || i >= visible.length) return;
+    cursor = i;
+    var fig = visible[i];
+    var idx = parseInt(fig.dataset.index, 10);
+    var s = SLIDES[idx];
+    lbImg.src = s.full;
+    lbImg.alt = "슬라이드 " + s.n + (s.title ? " — " + s.title : "");
+    lbCount.textContent = s.n + " / " + SLIDES.length;
+    lbTitle.textContent = s.title || "";
+    lbOpen.href = s.full;
+    lbPrev.disabled = i === 0;
+    lbNext.disabled = i === visible.length - 1;
+    if (s.pdf) { lbPdf.href = s.pdf; lbPdf.style.display = ""; lbPdf.download = ""; }
+    else { lbPdf.style.display = "none"; }
+  }
+
+  function openLb(i) {
+    lastFocus = document.activeElement;
+    lb.classList.add("is-open");
+    document.body.style.overflow = "hidden";
+    show(i);
+    document.getElementById("lbClose").focus();
+  }
+
+  function closeLb() {
+    lb.classList.remove("is-open");
+    document.body.style.overflow = "";
+    lbImg.removeAttribute("src");
+    if (lastFocus) lastFocus.focus();
+  }
+
+  figures.forEach(function (f) {
+    f.addEventListener("click", function () { openLb(visible.indexOf(f)); });
+    /* 썸네일은 figure라 기본 키 동작이 없다 — 엔터·스페이스를 직접 받는다 */
+    f.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openLb(visible.indexOf(f)); }
+    });
+  });
+
+  document.getElementById("lbClose").addEventListener("click", closeLb);
+  lbPrev.addEventListener("click", function () { show(cursor - 1); });
+  lbNext.addEventListener("click", function () { show(cursor + 1); });
+  document.getElementById("lbStage").addEventListener("click", function (e) {
+    if (e.target === e.currentTarget) closeLb();
+  });
+
+  /* 스와이프 */
+  var tx = 0, ty = 0;
+  lb.addEventListener("touchstart", function (e) {
+    tx = e.changedTouches[0].clientX; ty = e.changedTouches[0].clientY;
+  }, { passive: true });
+  lb.addEventListener("touchend", function (e) {
+    var dx = e.changedTouches[0].clientX - tx;
+    var dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy)) show(cursor + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+
+  /* 키보드 */
+  document.addEventListener("keydown", function (e) {
+    if (qrFull.classList.contains("is-open")) {
+      if (e.key === "Escape") closeQrFull();
+      return;
+    }
+    if (lb.classList.contains("is-open")) {
+      if (e.key === "Escape") closeLb();
+      else if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); show(cursor + 1); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); show(cursor - 1); }
+      else if (e.key === "Home") { e.preventDefault(); show(0); }
+      else if (e.key === "End") { e.preventDefault(); show(visible.length - 1); }
+      return;
+    }
+    var t = e.target.tagName;
+    if (t === "INPUT" || t === "TEXTAREA") return;
+    if (e.key === "q" || e.key === "Q" || e.key === "ㅂ") openQrFull();
+  });
+
+  var printBtn = document.getElementById("printBtn");
+  if (printBtn) printBtn.addEventListener("click", function () { window.print(); });
+})();
+</script>
+</body>
+</html>
