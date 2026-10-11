@@ -286,6 +286,39 @@ section.band.alt { background: var(--surface-2); border-block: 1px solid var(--r
 .sec-head p { margin-top: 12px; color: var(--ink-2); font-size: clamp(14.5px, 1.6vw, 16.5px); }
 
 /* ============================================================
+   3-a. 세로 영상(릴스) — 첫 화면 바로 아래 (CFG.reel)
+   ============================================================ */
+
+.hero-ctas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.hero-ctas .hero-prep { margin-top: 0; }
+.hero-reel {
+  display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+  background: var(--surface); color: var(--key-ink); border: 2px solid var(--key);
+  font-size: 15px; font-weight: 800; padding: 9px 16px; border-radius: 12px;
+}
+.hero-reel:hover { background: var(--lav-soft); }
+section.band.reel { background: #14111C; color: #F2EFF6; border-bottom: 1px solid #2A2438; }
+.reel-grid { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: clamp(24px, 5vw, 64px); align-items: center; }
+.reel-frame video {
+  display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; background: #000;
+  border-radius: 22px; box-shadow: 0 24px 60px rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.12);
+}
+.reel-body .sec-label { color: var(--magenta); }
+.reel-body h2 { font-size: clamp(24px, 3.6vw, 34px); font-weight: 800; letter-spacing: -.03em; line-height: 1.3; color: #FFFFFF; }
+.reel-body p { margin-top: 12px; color: #C6C0D2; font-size: clamp(14.5px, 1.6vw, 16.5px); max-width: 52ch; }
+.reel-body p a { color: #C9BEF3; text-underline-offset: 3px; }
+.reel-dl {
+  display: inline-flex; align-items: center; gap: 10px; margin-top: 20px; text-decoration: none;
+  background: var(--magenta); color: #FFFFFF; font-weight: 800; font-size: 15px; padding: 11px 18px; border-radius: 12px;
+}
+.reel-dl span { font-weight: 700; opacity: .85; }
+@media (max-width: 760px) {
+  .reel-grid { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .reel-frame { width: min(78vw, 340px); }
+  .reel-body p { margin-inline: auto; }
+}
+
+/* ============================================================
    3-b. 강의 전 준비 — 첫 화면 바로 아래, 눈에 띄게 (CFG.prep)
    ============================================================ */
 
@@ -612,6 +645,7 @@ footer.foot .fine {
   section.band.alt { background: #fff; border: 0; }
   .jcard, .dl, .thumb, .book { break-inside: avoid; }
   section.band.prep { background: #fff; border: 0; }
+  section.band.reel, .hero-ctas .hero-reel { display: none; }
   .hero-prep { display: none; }
   .prep-step, .prep-check { break-inside: avoid; box-shadow: none; }
   .jcard:hover { transform: none; box-shadow: none; }
@@ -641,7 +675,8 @@ footer.foot .fine {
     <span class="topbar-title">3회차</span>
     <nav class="topbar-nav" aria-label="바로가기">
         <a href="#prep">사전 준비</a>
-        <a href="#journey">오늘의 여정</a>
+        <a href="#reel">30초 영상</a>
+        <a href="#journey" class="opt">오늘의 여정</a>
         <a href="#slides" class="opt">슬라이드</a>
         <a href="#downloads" class="opt">자료 받기</a>
         <button class="qr-btn" data-qr-open type="button">
@@ -665,7 +700,7 @@ footer.foot .fine {
           <span class="chip">분량 <b>7개 장과 맺음 · 82장</b></span>
         </div>
       <p class="hero-note">강의 교안 PDF를 내려받거나 교재 웹북을 열고, 82장 슬라이드를 장별로 살펴볼 수 있습니다.</p>
-      <a class="hero-prep" href="#prep">강의 전 준비 안내 보기 <span aria-hidden="true">↓</span></a>
+      <div class="hero-ctas"><a class="hero-prep" href="#prep">강의 전 준비 안내 보기 <span aria-hidden="true">↓</span></a><a class="hero-reel" href="#reel"><span aria-hidden="true">▶</span> 30초 영상 보기</a></div>
     </div>
 
     <aside class="qr-card">
@@ -683,6 +718,21 @@ footer.foot .fine {
                aria-label="QR에 넣을 배포 주소" inputmode="url" autocomplete="off">
       </details>
     </aside>
+  </div>
+</section>
+<section class="band reel" id="reel">
+  <div class="wrap reel-grid">
+    <div class="reel-frame">
+      <video controls playsinline preload="none" poster="media/justvuild03-lecture-reel-poster.jpg" width="720" height="1280" aria-label="30초로 보는 오늘 강의">
+        <source src="media/justvuild03-lecture-reel-720x1280.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="reel-body">
+      <p class="sec-label">30-SECOND REEL</p>
+      <h2>30초로 보는 오늘 강의</h2>
+      <p>같은 설명을 매번 처음부터 하던 일을 문제 정의서 한 장, SKILL.md 한 장, 주소 하나로 바꾸는 과정을 30초에 담았습니다. 교재 전체는 <a href="https://claude-github-workflow.vercel.app/" target="_blank" rel="noopener">웹북</a>에서 읽을 수 있습니다.</p>
+      <a class="reel-dl" href="media/justvuild03-lecture-reel-share.mp4" download>영상 내려받기 (MP4) <span>4.2MB</span></a>
+    </div>
   </div>
 </section>
 <section class="band prep" id="prep">
