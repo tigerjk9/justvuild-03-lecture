@@ -286,6 +286,62 @@ section.band.alt { background: var(--surface-2); border-block: 1px solid var(--r
 .sec-head p { margin-top: 12px; color: var(--ink-2); font-size: clamp(14.5px, 1.6vw, 16.5px); }
 
 /* ============================================================
+   3-b. 강의 전 준비 — 첫 화면 바로 아래, 눈에 띄게 (CFG.prep)
+   ============================================================ */
+
+.hero-prep {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 16px;
+  background: var(--key); color: #fff; text-decoration: none;
+  font-size: 15px; font-weight: 800; padding: 11px 18px; border-radius: 12px; box-shadow: var(--shadow-1);
+}
+.hero-prep:hover { background: var(--key-deep); }
+section.band.prep {
+  background: color-mix(in srgb, var(--lav-soft) 72%, var(--surface));
+  border-top: 4px solid var(--magenta); border-bottom: 1px solid var(--rule);
+}
+.prep .sec-head { max-width: 68ch; }
+/* 카드 길이가 서로 달라 격자로 두면 빈칸이 크다 — 위에서 아래로 채우는 다단으로 둔다(번호가 순서를 알려 준다). */
+.prep-steps { list-style: none; margin: 0; padding: 0; columns: 3 300px; column-gap: 14px; }
+.prep-step {
+  display: flex; gap: 14px; min-width: 0; break-inside: avoid; margin-bottom: 14px;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius);
+  padding: 18px 18px 16px; box-shadow: var(--shadow-1);
+}
+.prep-step > div { flex: 1; min-width: 0; }
+.prep-no {
+  flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--key); color: #fff;
+  display: grid; place-items: center; font-size: 15px; font-weight: 800;
+}
+.prep-step h3 { margin: 4px 0 8px; font-size: 17px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
+.prep-step h3 small {
+  margin-left: 4px; padding: 2px 8px; border-radius: 99px; vertical-align: 2px;
+  background: var(--lav-soft); color: var(--key-ink); font-size: 12px; font-weight: 700;
+}
+.prep-step ul, .prep-extra { margin: 0; padding-left: 1.1em; color: var(--ink-2); font-size: 14.5px; line-height: 1.7; }
+.prep-step li + li, .prep-extra li + li { margin-top: 7px; }
+.prep-step li.prep-cmd { list-style: none; margin-left: -1.1em; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.prep-cmd span { min-width: 4.6em; font-size: 12.5px; font-weight: 700; color: var(--ink-3); }
+.prep code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, 'D2Coding', monospace; font-size: .92em;
+  background: var(--surface-2); border: 1px solid var(--rule); border-radius: 6px; padding: 1px 6px; overflow-wrap: anywhere;
+}
+.prep-cmd code { flex: 1 1 220px; padding: 6px 10px; font-size: 13px; white-space: pre-wrap; word-break: normal; overflow-wrap: anywhere; }
+.prep-check {
+  margin-top: 2px; padding: 18px 20px; background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--key) 35%, var(--rule)); border-radius: var(--radius);
+}
+.prep-check h3 { margin-bottom: 6px; font-size: 17px; font-weight: 800; color: var(--ink); }
+.prep-check p { color: var(--ink-2); font-size: 14.5px; }
+.prep-check pre { margin: 12px 0 8px; padding: 12px 16px; border-radius: 10px; background: #1F1B2E; color: #F2EFF6; overflow-x: auto; }
+.prep-check pre code { background: none; border: 0; padding: 0; color: inherit; font-size: 14px; line-height: 1.8; }
+.prep-check .prep-note { font-size: 13.5px; color: var(--ink-3); }
+.prep-extra { margin-top: 16px; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .hero-prep,
+  :root:not([data-theme="light"]) .prep-no { color: #17122A; }
+}
+
+/* ============================================================
    4. 오늘의 여정
    ============================================================ */
 
@@ -555,6 +611,9 @@ footer.foot .fine {
   section.band { padding: 8mm 0; break-inside: auto; }
   section.band.alt { background: #fff; border: 0; }
   .jcard, .dl, .thumb, .book { break-inside: avoid; }
+  section.band.prep { background: #fff; border: 0; }
+  .hero-prep { display: none; }
+  .prep-step, .prep-check { break-inside: avoid; box-shadow: none; }
   .jcard:hover { transform: none; box-shadow: none; }
   .grid { grid-template-columns: repeat(3, 1fr); gap: 4mm; }
   .thumb img { border: 1px solid #ddd; }
@@ -581,8 +640,9 @@ footer.foot .fine {
   <div class="wrap">
     <span class="topbar-title">3회차</span>
     <nav class="topbar-nav" aria-label="바로가기">
+        <a href="#prep">사전 준비</a>
         <a href="#journey">오늘의 여정</a>
-        <a href="#slides">슬라이드</a>
+        <a href="#slides" class="opt">슬라이드</a>
         <a href="#downloads" class="opt">자료 받기</a>
         <button class="qr-btn" data-qr-open type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm8-2h3v3h-3v-3zm5 0h3v3h-3v-3zm-5 5h3v3h-3v-3zm5 0h3v3h-3v-3z"/></svg>
@@ -605,6 +665,7 @@ footer.foot .fine {
           <span class="chip">분량 <b>7개 장과 맺음 · 82장</b></span>
         </div>
       <p class="hero-note">강의 교안 PDF를 내려받거나 교재 웹북을 열고, 82장 슬라이드를 장별로 살펴볼 수 있습니다.</p>
+      <a class="hero-prep" href="#prep">강의 전 준비 안내 보기 <span aria-hidden="true">↓</span></a>
     </div>
 
     <aside class="qr-card">
@@ -622,6 +683,64 @@ footer.foot .fine {
                aria-label="QR에 넣을 배포 주소" inputmode="url" autocomplete="off">
       </details>
     </aside>
+  </div>
+</section>
+<section class="band prep" id="prep">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="sec-label">BEFORE CLASS</p>
+      <h2>강의 전에 준비해 주십시오</h2>
+      <p>이번 강의에는 직접 해 보는 실습이 두 번 있습니다. 2장에서는 반복 업무를 스킬로 만들고, 6장에서는 그 결과를 웹 주소와 QR로 나눕니다. 설치에서 막히면 실습 시간을 놓치기 쉬우니 아래 다섯 가지를 강의 전날까지 마쳐 주십시오. 모두 처음 한 번만 하면 됩니다.</p>
+    </div>
+    <ol class="prep-steps">
+      <li class="prep-step">
+        <span class="prep-no" aria-hidden="true">1</span>
+        <div>
+          <h3>기기</h3>
+          <ul><li>실습은 노트북으로 합니다. 태블릿이나 스마트폰만으로는 따라 하기 어렵습니다.</li><li>QR 확인용 스마트폰을 옆에 두십시오. 카메라로 아무 QR 코드나 비춰 링크가 뜨는지 확인해 두시면 됩니다.</li><li>노트북에 강의 창과 VS Code를 나란히 띄우고, 두 창의 글씨가 잘 보이도록 크기를 맞춰 두십시오.</li></ul>
+        </div>
+      </li>
+      <li class="prep-step">
+        <span class="prep-no" aria-hidden="true">2</span>
+        <div>
+          <h3>VS Code와 Node.js 설치 <small>무료</small></h3>
+          <ul><li>VS Code: <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">code.visualstudio.com</a></li><li>Node.js: <a href="https://nodejs.org/" target="_blank" rel="noopener">nodejs.org</a>에서 LTS 버전</li><li>Node.js를 설치한 뒤에는 VS Code를 완전히 닫았다가 다시 여십시오.</li></ul>
+        </div>
+      </li>
+      <li class="prep-step">
+        <span class="prep-no" aria-hidden="true">3</span>
+        <div>
+          <h3>AI 에이전트 하나</h3>
+          <ul><li>Claude Code를 쓰시려면 Claude 유료 구독(Pro·Max·Team·Enterprise)이나 Anthropic Console API 키가 필요합니다. 무료 Claude 계정으로는 쓸 수 없습니다.</li><li>VS Code에서 [Terminal] → [New Terminal]을 열고 아래 명령으로 설치합니다.</li><li class="prep-cmd"><span>Windows</span><code>irm https://claude.ai/install.ps1 | iex</code></li><li class="prep-cmd"><span>Mac</span><code>curl -fsSL https://claude.ai/install.sh | bash</code></li><li>설치는 진행 표시 없이 조용히 끝납니다. 끝나면 VS Code를 다시 열고 터미널에 <code>claude</code>를 입력해 첫 로그인을 마쳐 주십시오. 다시 입력했을 때 로그인을 묻지 않고 입력 칸이 바로 나오면 준비된 것입니다.</li><li>유료 구독이 없으시면 1회차에서 설치한 안티그라비티(Google Antigravity IDE)로 참여하셔도 됩니다. 실습 지시문이 평범한 한국어 문장이라 어느 에이전트에서나 같은 순서로 따라 할 수 있습니다. 대화창에 &quot;안녕하세요&quot;를 보내 답이 오는지만 확인해 두십시오.</li></ul>
+        </div>
+      </li>
+      <li class="prep-step">
+        <span class="prep-no" aria-hidden="true">4</span>
+        <div>
+          <h3>GitHub 계정과 GitHub Desktop <small>무료</small></h3>
+          <ul><li>계정이 없으면 <a href="https://github.com/" target="_blank" rel="noopener">github.com</a>에서 가입하시고, 있으면 로그인되는지 확인해 주십시오.</li><li>내 사용자 이름(아이디)을 적어 두십시오. 6장에서 만드는 웹 주소의 앞부분이 됩니다.</li><li><a href="https://desktop.github.com/" target="_blank" rel="noopener">desktop.github.com</a>에서 GitHub Desktop을 설치하고 로그인해 둡니다.</li><li>Windows: [File] → [Options] → [Accounts] → [Sign Into GitHub.com]</li><li>Mac: [GitHub Desktop] → [Settings] → [Accounts] → [Sign Into GitHub.com]</li><li>새 기기에서 로그인하면 인증 번호가 메일로 올 수 있습니다. 가입한 메일함을 바로 열 수 있게 해 두십시오.</li></ul>
+        </div>
+      </li>
+      <li class="prep-step">
+        <span class="prep-no" aria-hidden="true">5</span>
+        <div>
+          <h3>작업 폴더 이름</h3>
+          <ul><li><code>my-slides</code>처럼 영문으로, 빈칸 없이 정해 두십시오. 폴더는 강의 중에 함께 만듭니다. 이름에 한글이나 빈칸이 들어가면 6장에서 웹 주소가 깨집니다.</li></ul>
+        </div>
+      </li>
+    </ol>
+    <div class="prep-check">
+      <h3>준비 확인</h3>
+      <p>VS Code에서 [Terminal] → [New Terminal]을 열고 아래 두 줄을 한 줄씩 입력하십시오. 둘 다 버전 번호가 나오면 준비가 끝난 것입니다.</p>
+      <pre><code>node -v
+claude --version</code></pre>
+      <p class="prep-note">안티그라비티로 참여하시면 첫 줄만 확인하시면 됩니다.</p>
+    </div>
+    <ul class="prep-extra">
+      <li>교재 웹북 <a href="https://claude-github-workflow.vercel.app/" target="_blank" rel="noopener">claude-github-workflow.vercel.app</a>의 부록 A(명령어 모음), 부록 B(자주 막히는 지점), 부록 C(준비물과 90분 진행표)를 미리 보시면 도움이 됩니다.</li>
+      <li>[선택] 매주 되풀이하는 업무 세 가지를 떠올려 오시면 1장 활동에서 바로 점수를 매겨 볼 수 있습니다.</li>
+      <li>강의 중 실습이 늦어지면 채팅창에 남겨 주십시오. 3~5장은 화면을 보며 듣는 시간이라 그사이에 따라잡으실 수 있습니다. 강의가 끝난 뒤 교재 2장부터 다시 하셔도 설치만 되어 있으면 40분이면 두 실습을 마칠 수 있습니다.</li>
+    </ul>
   </div>
 </section>
 <section class="band" id="journey">
